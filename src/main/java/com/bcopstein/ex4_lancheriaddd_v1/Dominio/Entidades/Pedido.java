@@ -12,7 +12,8 @@ public class Pedido {
         PREPARACAO,
         PRONTO,
         TRANSPORTE,
-        ENTREGUE
+        ENTREGUE,
+        CANCELADO
     }
     private long id;
     private Cliente cliente;

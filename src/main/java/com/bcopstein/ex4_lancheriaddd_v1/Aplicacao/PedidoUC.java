@@ -22,4 +22,13 @@ public class PedidoUC {
         Cliente cli = new Cliente("","",  "", dto.getEnderecoEntrega(), dto.getEmailCliente());
         return pedidoService.submeterPedido(cli, dto.getItens(), LocalDateTime.now());
     }
+
+    public Pedido getPedidoById(Long id) {
+    return pedidoService.buscarPedidoPorId(id);
+    }
+    
+    public Pedido cancelarPedido(Long id) {
+    return pedidoService.cancelarPedido(id);
+    }
+
 }

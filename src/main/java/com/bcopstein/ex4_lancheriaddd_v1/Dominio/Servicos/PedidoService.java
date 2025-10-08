@@ -2,11 +2,13 @@ package com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.ItemPedidoDto;
 import org.springframework.stereotype.Service;
 
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.ItemPedidoDto;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.ProdutosRepository;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Cliente;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.ItemPedido;
@@ -15,18 +17,21 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Produto;
 
 @Service
 public class PedidoService {
-    private int x =0;
+    private long  x = 0;
     private final ProdutosRepository produtosRepository;
     private final ImpostoService impostosService;
     private final DescontoService descontosService;
     private final EstoqueService estoqueService;
 
-    public PedidoService(ProdutosRepository produtosRepository, ImpostoService impostosService, DescontoService descontosService, EstoqueService estoqueService) {
+    // Armazenamento em memória dos pedidos
+    private final Map<Long, Pedido> pedidos = new HashMap<>();
+
+    public PedidoService(ProdutosRepository produtosRepository, ImpostoService impostosService,
+                         DescontoService descontosService, EstoqueService estoqueService) {
         this.produtosRepository = produtosRepository;
         this.impostosService = impostosService;
         this.descontosService = descontosService;
         this.estoqueService = estoqueService;
-        this.x = 0;
     }
 
     public Pedido submeterPedido(Cliente cliente, List<ItemPedidoDto> listaItens, LocalDateTime agora){
@@ -49,9 +54,32 @@ public class PedidoService {
         double impostos = impostosService.calcularImpostos(subtotal - desconto);
         double total = subtotal - desconto + impostos;
 
-        // implementar algo para id ser melhor
+        // Gerar ID único
         x += 1;
-        return new Pedido( x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total);
+        Pedido pedido = new Pedido(x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total);
 
+        // Armazenar pedido
+        pedidos.put(x, pedido);
+
+        return pedido;
     }
+
+    public Pedido buscarPedidoPorId(Long id) {
+        return pedidos.get(id);
+    }
+    
+    public Pedido cancelarPedido(Long id) {
+    Pedido pedido = pedidos.get(id);
+    if (pedido == null) {
+        return null;
+    }
+
+    if (pedido.getStatus() != Pedido.Status.APROVADO) {
+        return pedido; 
+    }
+
+    pedido.setStatus(Pedido.Status.CANCELADO);
+    return pedido;
+}
+
 }

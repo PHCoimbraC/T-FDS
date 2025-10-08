@@ -1,21 +1,29 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Apresentacao;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.bcopstein.ex4_lancheriaddd_v1.Aplicacao.PedidoUC;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.PedidoRequestDto;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
-
-import java.util.List;
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos.PedidoService;
 
 @RestController
 @RequestMapping("/pedidos")
 public class PedidoController {
     private final PedidoUC PedidoUC;
+    private final PedidoService PedidoService;
 
-    public PedidoController(PedidoUC PedidoUC) {
+    public PedidoController(PedidoUC PedidoUC, PedidoService PedidoService) {
         this.PedidoUC = PedidoUC;
+        this.PedidoService = PedidoService;
     }
 
     @PostMapping("/fazerPedido")
@@ -27,4 +35,30 @@ public class PedidoController {
         }
         return ResponseEntity.badRequest().body(aprovadoOuNegado);
     }
+
+    @GetMapping("/{id}/status")
+    @CrossOrigin("*")
+    public ResponseEntity<String> statusPedido(@PathVariable Long id) {
+    Pedido pedido = PedidoService.buscarPedidoPorId(id); 
+        if (pedido == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(pedido.getStatus().toString());
+    }   
+
+    @DeleteMapping("/{id}/cancelar")
+    @CrossOrigin("*")
+    public ResponseEntity<Pedido> cancelarPedido(@PathVariable Long id) {
+    Pedido pedidoCancelado = PedidoService.cancelarPedido(id);
+        if (pedidoCancelado == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (pedidoCancelado.getStatus() != Pedido.Status.NOVO) {
+            return ResponseEntity.badRequest().body(pedidoCancelado);
+        }
+
+        return ResponseEntity.ok(pedidoCancelado);
+    }
+
 }
