@@ -1,5 +1,6 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Apresentacao;
 
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos.CozinhaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,10 +21,12 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos.PedidoService;
 public class PedidoController {
     private final PedidoUC PedidoUC;
     private final PedidoService PedidoService;
+    private final CozinhaService cozinhaService;
 
-    public PedidoController(PedidoUC PedidoUC, PedidoService PedidoService) {
+    public PedidoController(PedidoUC PedidoUC, PedidoService PedidoService, CozinhaService cozinhaService) {
         this.PedidoUC = PedidoUC;
         this.PedidoService = PedidoService;
+        this.cozinhaService = cozinhaService;
     }
 
     @PostMapping("/fazerPedido")
@@ -61,4 +64,17 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoCancelado);
     }
 
+    @PostMapping("/{id}/pagar")
+    @CrossOrigin("*")
+    public ResponseEntity<String> pagar(@PathVariable Long id) {
+        var pedido = PedidoService.pagarPedido(id);
+        if (pedido == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (pedido.getStatus() != Pedido.Status.PAGO) {
+            return ResponseEntity.badRequest().body("Pedido não aprovado");
+        }
+        cozinhaService.chegadaDePedido(pedido);
+        return ResponseEntity.ok("pago");
+    }
 }

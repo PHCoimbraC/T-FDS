@@ -6,8 +6,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.stereotype.Service;
+
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
 
+@Service
 public class CozinhaService {
     private Queue<Pedido> filaEntrada;
     private Pedido emPreparacao;
@@ -26,11 +29,11 @@ public class CozinhaService {
         pedido.setStatus(Pedido.Status.PREPARACAO);
         emPreparacao = pedido;
         System.out.println("Pedido em preparacao: "+pedido);
-        // Agenda pedidoPronto para ser chamado em 2 segundos
         scheduler.schedule(() -> pedidoPronto(), 5, TimeUnit.SECONDS);
     }
 
     public synchronized void chegadaDePedido(Pedido p) {
+        p.setStatus(Pedido.Status.AGUARDANDO);
         filaEntrada.add(p);
         System.out.println("Pedido na fila de entrada: "+p);
         if (emPreparacao == null) {
@@ -43,7 +46,6 @@ public class CozinhaService {
         filaSaida.add(emPreparacao);
         System.out.println("Pedido na fila de saida: "+emPreparacao);
         emPreparacao = null;
-        // Se tem pedidos na fila, programa a preparação para daqui a 1 segundo
         if (!filaEntrada.isEmpty()){
             Pedido prox = filaEntrada.poll();
             scheduler.schedule(() -> colocaEmPreparacao(prox), 1, TimeUnit.SECONDS);

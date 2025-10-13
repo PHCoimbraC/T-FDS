@@ -1,12 +1,11 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.stereotype.Service;
+
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.PedidosRepository;
 
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.ItemPedidoDto;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.ProdutosRepository;
@@ -22,19 +21,24 @@ public class PedidoService {
     private final ImpostoService impostosService;
     private final DescontoService descontosService;
     private final EstoqueService estoqueService;
+    private final CozinhaService cozinhaService;
+    private final PedidosRepository pedidosRepository;
 
     // Armazenamento em memória dos pedidos
     private final Map<Long, Pedido> pedidos = new HashMap<>();
 
     public PedidoService(ProdutosRepository produtosRepository, ImpostoService impostosService,
-                         DescontoService descontosService, EstoqueService estoqueService) {
+                         DescontoService descontosService, EstoqueService estoqueService,
+                         CozinhaService cozinhaService, PedidosRepository pedidosRepository) {
         this.produtosRepository = produtosRepository;
         this.impostosService = impostosService;
         this.descontosService = descontosService;
         this.estoqueService = estoqueService;
+        this.cozinhaService = cozinhaService;
+        this.pedidosRepository = pedidosRepository;
     }
 
-    public Pedido submeterPedido(Cliente cliente, List<ItemPedidoDto> listaItens, LocalDateTime agora){
+    public Pedido submeterPedido(Cliente cliente, List<ItemPedidoDto> listaItens){
         List<ItemPedido> itens = new ArrayList<>();
         for (ItemPedidoDto i: listaItens){
             Produto p = produtosRepository.recuperaProdutoPorid(i.getProdutoId());
@@ -50,15 +54,15 @@ public class PedidoService {
         }
 
         double subtotal = itens.stream().mapToDouble(ip -> ip.getItem().getPreco() * ip.getQuantidade()).sum();
-        double desconto = descontosService.calcularDesconto(cliente, itens, agora.toLocalDate());
+        double desconto = descontosService.calcularDesconto(cliente, itens);
         double impostos = impostosService.calcularImpostos(subtotal - desconto);
         double total = subtotal - desconto + impostos;
 
-        // Gerar ID único
-        x += 1;
-        Pedido pedido = new Pedido(x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total);
+        x = x + 1;
+        Pedido pedido = new Pedido( x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total);
 
-        // Armazenar pedido
+        pedidosRepository.salvar(pedido, LocalDateTime.now());
+
         pedidos.put(x, pedido);
 
         return pedido;
@@ -81,5 +85,17 @@ public class PedidoService {
     pedido.setStatus(Pedido.Status.CANCELADO);
     return pedido;
 }
-
+    public Pedido pagarPedido(Long id) {
+        Pedido pedido = pedidos.get(id);
+        if (pedido == null) {
+            return null;
+        }
+        if (pedido.getStatus() != Pedido.Status.APROVADO) {
+            return pedido;
+        }
+        pedido.setStatus(Pedido.Status.PAGO);
+        pedido.setDataHoraPagamento(LocalDateTime.now());
+        pedidosRepository.atualizarPagamento(pedido.getId(), LocalDateTime.now());
+        return pedido;
+    }
 }

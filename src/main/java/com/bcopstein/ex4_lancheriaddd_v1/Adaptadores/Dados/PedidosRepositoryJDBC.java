@@ -1,29 +1,111 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Dados;
 
+import java.sql.ResultSet;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.PedidosRepository;
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Cliente;
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.ItemPedido;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Produto;
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.ProdutosRepository;
 
 @Repository
 public class PedidosRepositoryJDBC implements PedidosRepository {
 
-    @Override
-public Optional<Pedido> findByCodigo(long codigo) {
-    // Apenas para testes
-    Pedido pedido = new Pedido(
-        codigo,
-        null, // cliente (pode ser null por enquanto)
-        java.time.LocalDateTime.now(),
-        new java.util.ArrayList<>(), // lista de itens
-        Pedido.Status.APROVADO, // status inicial
-        100.0, // valorItens
-        0.0,   // desconto
-        10.0,  // imposto
-        110.0  // valorTotal
-    );
-    return Optional.of(pedido);
-}
+    private final JdbcTemplate jdbc;
+    private final ProdutosRepository produtosRepository;
 
+    public PedidosRepositoryJDBC(JdbcTemplate jdbc, ProdutosRepository produtosRepository) {
+        this.jdbc = jdbc;
+        this.produtosRepository = produtosRepository;
+    }
+
+    @Override
+    public Optional<Pedido> findByCodigo(long codigo) {
+        String sql = "select id, email_cliente, endereco_entrega, status, data_pagamento, valor_itens, desconto, impostos, valor_total " +
+                     "from pedidos where id = ?";
+        List<Pedido> lst = jdbc.query(sql, ps -> ps.setLong(1, codigo), (rs, rn) -> mapPedidoCab(rs));
+        if (lst.isEmpty()) return Optional.empty();
+        Pedido p = lst.getFirst();
+        p.getItens().addAll(carregarItens(p.getId()));
+        return Optional.of(p);
+    }
+
+    @Override
+    public List<Pedido> findByClienteEmailAndPeriodo(String email, LocalDateTime inicio, LocalDateTime fim) {
+        String sql = "select id, email_cliente, endereco_entrega, status, data_pagamento, valor_itens, desconto, impostos, valor_total " +
+                     "from pedidos where email_cliente = ? and criado_em >= ? and criado_em < ?";
+        return jdbc.query(sql, ps -> {
+            ps.setString(1, email);
+            ps.setObject(2, inicio);
+            ps.setObject(3, fim);
+        }, (rs, rn) -> mapPedidoCab(rs));
+    }
+
+    @Override
+    public void salvar(Pedido pedido, LocalDateTime criadoEm) {
+        String sqlPed = "insert into pedidos (id, email_cliente, endereco_entrega, status, data_pagamento, valor_itens, desconto, impostos, valor_total, criado_em) " +
+                        "values (?,?,?,?,?,?,?,?,?,?)";
+        jdbc.update(sqlPed, ps -> {
+            ps.setLong(1, pedido.getId());
+            ps.setString(2, pedido.getCliente().getEmail());
+            ps.setString(3, pedido.getCliente().getEndereco());
+            ps.setString(4, pedido.getStatus().name());
+            ps.setObject(5, pedido.getDataHoraPagamento());
+            ps.setDouble(6, pedido.getValor());
+            ps.setDouble(7, pedido.getDesconto());
+            ps.setDouble(8, pedido.getImpostos());
+            ps.setDouble(9, pedido.getValorCobrado());
+            ps.setObject(10, criadoEm);
+        });
+        String sqlItem = "insert into pedido_itens (pedido_id, produto_id, quantidade) values (?,?,?)";
+        for (ItemPedido it : pedido.getItens()) {
+            jdbc.update(sqlItem, ps -> {
+                ps.setLong(1, pedido.getId());
+                ps.setLong(2, it.getItem().getId());
+                ps.setInt(3, it.getQuantidade());
+            });
+        }
+    }
+
+    @Override
+    public void atualizarPagamento(long id, LocalDateTime dataPagamento) {
+        String sql = "update pedidos set data_pagamento = ?, status = ? where id = ?";
+        jdbc.update(sql, ps -> {
+            ps.setObject(1, dataPagamento);
+            ps.setString(2, Pedido.Status.PAGO.name());
+            ps.setLong(3, id);
+        });
+    }
+
+    private Pedido mapPedidoCab(ResultSet rs) throws java.sql.SQLException {
+        long id = rs.getLong("id");
+        String email = rs.getString("email_cliente");
+        String endereco = rs.getString("endereco_entrega");
+        String status = rs.getString("status");
+        LocalDateTime dataPag = rs.getObject("data_pagamento", LocalDateTime.class);
+        double valor = rs.getDouble("valor_itens");
+        double desconto = rs.getDouble("desconto");
+        double impostos = rs.getDouble("impostos");
+        double total = rs.getDouble("valor_total");
+        Cliente cli = new Cliente("", "", "", endereco, email);
+        return new Pedido(id, cli, dataPag, new java.util.ArrayList<>(),
+                Pedido.Status.valueOf(status), valor, impostos, desconto, total);
+    }
+
+    private List<ItemPedido> carregarItens(long pedidoId) {
+        String sql = "select produto_id, quantidade from pedido_itens where pedido_id = ?";
+        return jdbc.query(sql, ps -> ps.setLong(1, pedidoId), (rs, rn) -> {
+            long prodId = rs.getLong("produto_id");
+            int qt = rs.getInt("quantidade");
+            Produto p = produtosRepository.recuperaProdutoPorid(prodId);
+            return new ItemPedido(p, qt);
+        });
+    }
 }

@@ -1,7 +1,6 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Dados;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -42,7 +41,6 @@ public class CardapioRepositoryJDBC implements CardapioRepository{
     }
 
     @Override
-    // Por enquanto retorna sempre a pizza de queijo e presunto como indicação do "chef"
     public List<Produto> indicacoesDoChef() {
         return List.of(produtosRepository.recuperaProdutoPorid(2L));   
     }
