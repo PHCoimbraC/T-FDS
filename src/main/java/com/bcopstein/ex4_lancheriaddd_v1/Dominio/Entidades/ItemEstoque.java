@@ -1,5 +1,6 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades;
 
+// n usado
 public class ItemEstoque {
     private Ingrediente ingrediente;
     private int quantidade;

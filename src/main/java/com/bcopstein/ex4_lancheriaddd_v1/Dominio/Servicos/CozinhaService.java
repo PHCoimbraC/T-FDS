@@ -18,8 +18,8 @@ public class CozinhaService {
     private Pedido emPreparacao;
     private Queue<Pedido> filaSaida;
 
-    private ScheduledExecutorService scheduler;       // Preparo dos pedidos
-    private ScheduledExecutorService entregaScheduler; // Entrega dos pedidos
+    private ScheduledExecutorService scheduler;       // preparo dos pedidos
+    private ScheduledExecutorService entregaScheduler; // entrega dos pedidos
 
     public CozinhaService(PedidosRepository pedidosRepository) {
         this.pedidosRepository = pedidosRepository;
@@ -29,10 +29,10 @@ public class CozinhaService {
         filaSaida = new LinkedBlockingQueue<>();
         scheduler = Executors.newSingleThreadScheduledExecutor();
         entregaScheduler = Executors.newSingleThreadScheduledExecutor();
-        iniciarEntregaSimulada();
+        entregaSimulada();
     }
 
-    /** Coloca um pedido em preparo */
+    // Coloca um pedido em preparo
     private synchronized void colocaEmPreparacao(Pedido pedido){
         if (pedido == null) return;
         pedido.setStatus(Pedido.Status.PREPARACAO);
@@ -41,7 +41,7 @@ public class CozinhaService {
         scheduler.schedule(this::pedidoPronto, 5, TimeUnit.SECONDS); // preparo simulado
     }
 
-    /** Chegada de pedido pago */
+    // Chegada de pedido pago
     public synchronized void chegadaDePedido(Pedido p) {
         if (p == null) return;
         p.setStatus(Pedido.Status.AGUARDANDO);
@@ -52,7 +52,7 @@ public class CozinhaService {
         }
     }
 
-    /** Pedido finalizado na cozinha */
+    // Pedido finalizado na cozinha
     public synchronized void pedidoPronto() {
         if (emPreparacao == null) return;
         emPreparacao.setStatus(Pedido.Status.PRONTO);
@@ -65,27 +65,25 @@ public class CozinhaService {
         }
     }
 
-        private void iniciarEntregaSimulada() {
-        entregaScheduler.scheduleAtFixedRate(() -> {
-            Pedido p = filaSaida.poll();
-            if (p != null) {
-                try {
-                    System.out.println("Entregador saiu para pedido: " + p.getId());
-                    p.setStatus(Pedido.Status.TRANSPORTE);
-                    pedidosRepository.atualizarStatus(p.getId(), Pedido.Status.TRANSPORTE);
+    private synchronized void entregaSimulada() {
+    Pedido p = filaSaida.poll();
+    if (p != null) {
+        System.out.println("Entregador saiu para pedido: " + p.getId());
+        p.setStatus(Pedido.Status.TRANSPORTE);
+        pedidosRepository.atualizarStatus(p.getId(), Pedido.Status.TRANSPORTE);
 
-                    Thread.sleep(3000); // tempo de transporte simulado
+        entregaScheduler.schedule(() -> finalizarEntrega(p), 3, TimeUnit.SECONDS);
+    } else {
+        entregaScheduler.schedule(() -> entregaSimulada(), 2, TimeUnit.SECONDS);
+    }
+    }
 
-                    p.setStatus(Pedido.Status.ENTREGUE);
-                    pedidosRepository.atualizarStatus(p.getId(), Pedido.Status.ENTREGUE);
+    private synchronized void finalizarEntrega(Pedido p) {
+    p.setStatus(Pedido.Status.ENTREGUE);
+    pedidosRepository.atualizarStatus(p.getId(), Pedido.Status.ENTREGUE);
+    System.out.println("Pedido entregue: " + p.getId());
 
-                    System.out.println("Pedido entregue: " + p.getId());
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    System.out.println("Entrega interrompida para pedido: " + p.getId());
-                }
-            }
-        }, 2, 2, TimeUnit.SECONDS);
+    entregaScheduler.schedule(() -> entregaSimulada(), 2, TimeUnit.SECONDS);
     }
 
 }

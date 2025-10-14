@@ -2,9 +2,8 @@ package com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -16,9 +15,12 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.ItemPedido;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Produto;
 
+import javax.management.AttributeNotFoundException;
+
 @Service
 public class PedidoService {
-    private long  x = 0;
+    private long x = 0;
+
     private final ProdutosRepository produtosRepository;
     private final ImpostoService impostosService;
     private final DescontoService descontosService;
@@ -26,12 +28,13 @@ public class PedidoService {
     private final CozinhaService cozinhaService;
     private final PedidosRepository pedidosRepository;
 
-    // Armazenamento em memória dos pedidos
-    private final Map<Long, Pedido> pedidos = new HashMap<>();
-
-    public PedidoService(ProdutosRepository produtosRepository, ImpostoService impostosService,
-                         DescontoService descontosService, EstoqueService estoqueService,
-                         CozinhaService cozinhaService, PedidosRepository pedidosRepository) {
+    public PedidoService(
+            ProdutosRepository produtosRepository,
+            ImpostoService impostosService,
+            DescontoService descontosService,
+            EstoqueService estoqueService,
+            CozinhaService cozinhaService,
+            PedidosRepository pedidosRepository) {
         this.produtosRepository = produtosRepository;
         this.impostosService = impostosService;
         this.descontosService = descontosService;
@@ -40,9 +43,9 @@ public class PedidoService {
         this.pedidosRepository = pedidosRepository;
     }
 
-    public Pedido submeterPedido(Cliente cliente, List<ItemPedidoDto> listaItens){
+    public Pedido submeterPedido(Cliente cliente, List<ItemPedidoDto> listaItens) {
         List<ItemPedido> itens = new ArrayList<>();
-        for (ItemPedidoDto i: listaItens){
+        for (ItemPedidoDto i : listaItens) {
             Produto p = produtosRepository.recuperaProdutoPorid(i.getProdutoId());
             if (p == null) {
                 return new Pedido(0, cliente, null, List.of(), Pedido.Status.NOVO, 0, 0, 0, 0);
@@ -51,7 +54,7 @@ public class PedidoService {
         }
 
         boolean estoqueOk = estoqueService.verificarDisponibilidade(itens);
-        if (!estoqueOk){
+        if (!estoqueOk) {
             return new Pedido(0, cliente, null, itens, Pedido.Status.NOVO, 0, 0, 0, 0);
         }
 
@@ -61,44 +64,45 @@ public class PedidoService {
         double total = subtotal - desconto + impostos;
 
         x = x + 1;
-        Pedido pedido = new Pedido( x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total);
+        Pedido pedido = new Pedido(x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total
+        );
 
         pedidosRepository.salvar(pedido, LocalDateTime.now());
-
-        pedidos.put(x, pedido);
 
         return pedido;
     }
 
-    public Pedido buscarPedidoPorId(Long id) {
-        return pedidos.get(id);
-    }
-    
     public Pedido cancelarPedido(Long id) {
-    Pedido pedido = pedidos.get(id);
-    if (pedido == null) {
-        return null;
-    }
-
-    if (pedido.getStatus() != Pedido.Status.APROVADO) {
-        return pedido; 
-    }
-
-    pedido.setStatus(Pedido.Status.CANCELADO);
-    return pedido;
-}
-    public Pedido pagarPedido(Long id) {
-        Pedido pedido = pedidos.get(id);
-        if (pedido == null) {
+        Optional<Pedido> pedidoOptional = pedidosRepository.findByCodigo(id);
+        if (pedidoOptional.isEmpty()) {
             return null;
         }
+        Pedido pedido = pedidoOptional.get();
+
+        if (pedido.getStatus() != Pedido.Status.APROVADO) {
+            return pedido;
+        }
+
+        pedido.setStatus(Pedido.Status.CANCELADO);
+        pedidosRepository.atualizarStatus(id, Pedido.Status.CANCELADO);
+
+        return pedido;
+    }
+
+    public Pedido pagarPedido(Long id) {
+        Optional<Pedido> pedidoOptional = pedidosRepository.findByCodigo(id);
+        if (pedidoOptional.isEmpty()) {
+            return null;
+        }
+        Pedido pedido = pedidoOptional.get();
+
         if (pedido.getStatus() != Pedido.Status.APROVADO) {
             return pedido;
         }
         pedido.setStatus(Pedido.Status.PAGO);
-        pedido.setDataHoraPagamento(LocalDateTime.now());
-        pedidosRepository.atualizarPagamento(pedido.getId(), LocalDateTime.now());
+        pedido.setDataHoraPagamento( LocalDateTime.now());
+        pedidosRepository.atualizarPagamento(id, LocalDateTime.now());
+
         return pedido;
     }
-
 }

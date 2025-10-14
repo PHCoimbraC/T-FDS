@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.bcopstein.ex4_lancheriaddd_v1.Aplicacao.ListarPedidosEntreguesEntreDatasUC;
+import com.bcopstein.ex4_lancheriaddd_v1.Aplicacao.ListarEntregas;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
 
 @RestController
-public class ConsultaPedidosEntreguesController {
-    private final ListarPedidosEntreguesEntreDatasUC listarPedidosUC;
+public class ConsultarEntregas {
+    private final ListarEntregas listarPedidosUC;
 
-    public ConsultaPedidosEntreguesController(ListarPedidosEntreguesEntreDatasUC listarPedidosUC) {
+    public ConsultarEntregas(ListarEntregas listarPedidosUC) {
         this.listarPedidosUC = listarPedidosUC;
     }
 

@@ -9,14 +9,14 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.PedidosRepository;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
 
 @Component
-public class ListarPedidosEntreguesEntreDatasUC {
+public class ListarEntregas {
     private final PedidosRepository pedidosRepository;
 
-    public ListarPedidosEntreguesEntreDatasUC(PedidosRepository pedidosRepository) {
+    public ListarEntregas(PedidosRepository pedidosRepository) {
         this.pedidosRepository = pedidosRepository;
     }
 
     public List<Pedido> run(LocalDateTime inicio, LocalDateTime fim) {
-        return pedidosRepository.findByStatusAndPeriodo("ENTREGUE", inicio, fim);
+        return pedidosRepository.findByStatusAndTempo("ENTREGUE", inicio, fim);
     }
 }

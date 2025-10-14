@@ -6,7 +6,6 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.ItemPedido;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,7 +28,7 @@ public class DescontoService {
         if (email == null || email.isBlank()) return false;
         LocalDateTime inicio = LocalDateTime.now().toLocalDate().minusDays(20).atStartOfDay();
         LocalDateTime fim = LocalDateTime.now().toLocalDate().plusDays(1).atStartOfDay();
-        List<Pedido> pedidos = pedidosRepository.findByClienteEmailAndPeriodo(email, inicio, fim);
+        List<Pedido> pedidos = pedidosRepository.findByClienteEmailAndTempo(email, inicio, fim);
         return pedidos != null && pedidos.size() > 3;
     }
 }

@@ -30,7 +30,9 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
     @Override
     public Optional<Pedido> findByCodigo(long codigo) {
         String sql = "SELECT * FROM pedidos WHERE id = ?";
-        List<Pedido> lst = jdbc.query(sql, ps -> ps.setLong(1, codigo), (rs, rn) -> mapPedidoCab(rs));
+        List<Pedido> lst = jdbc.query(sql,
+                ps -> ps.setLong(1, codigo),
+                (rs, rowNum) -> mapPedido(rs));
         if (lst.isEmpty()) return Optional.empty();
         Pedido p = lst.get(0);
         p.getItens().addAll(carregarItens(p.getId()));
@@ -38,7 +40,7 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
     }
 
     @Override
-    public List<Pedido> findByClienteEmailAndPeriodo(String email, LocalDateTime inicio, LocalDateTime fim) {
+    public List<Pedido> findByClienteEmailAndTempo(String email, LocalDateTime inicio, LocalDateTime fim) {
         String sql = """
             SELECT * FROM pedidos 
             WHERE email_cliente = ? 
@@ -49,7 +51,7 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
             ps.setString(1, email);
             ps.setObject(2, inicio);
             ps.setObject(3, fim);
-        }, (rs, rn) -> mapPedidoCab(rs));
+        }, (rs, rowNum) -> mapPedido(rs));
     }
 
     @Override
@@ -104,7 +106,7 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
         });
     }
 
-    private Pedido mapPedidoCab(ResultSet rs) throws SQLException {
+    private Pedido mapPedido(ResultSet rs) throws SQLException {
         long id = rs.getLong("id");
         String email = rs.getString("email_cliente");
         String endereco = rs.getString("endereco_entrega");
@@ -127,7 +129,7 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
 
     private List<ItemPedido> carregarItens(long pedidoId) {
         String sql = "SELECT produto_id, quantidade FROM pedido_itens WHERE pedido_id = ?";
-        return jdbc.query(sql, ps -> ps.setLong(1, pedidoId), (rs, rn) -> {
+        return jdbc.query(sql, ps -> ps.setLong(1, pedidoId), (rs, rowNum) -> {
             long prodId = rs.getLong("produto_id");
             int qt = rs.getInt("quantidade");
             Produto p = produtosRepository.recuperaProdutoPorid(prodId);
@@ -136,7 +138,7 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
     }
 
     @Override
-    public List<Pedido> findByStatusAndPeriodo(String status, LocalDateTime inicio, LocalDateTime fim) {
+    public List<Pedido> findByStatusAndTempo(String status, LocalDateTime inicio, LocalDateTime fim) {
         String sql = """
             SELECT * FROM pedidos 
             WHERE status = ? 
@@ -147,8 +149,8 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
             ps.setString(1, status);
             ps.setObject(2, inicio);
             ps.setObject(3, fim);
-        }, (rs, rn) -> {
-            Pedido pedido = mapPedidoCab(rs);
+        }, (rs, rowNum) -> {
+            Pedido pedido = mapPedido(rs);
             pedido.getItens().addAll(carregarItens(pedido.getId()));
             return pedido;
         });
