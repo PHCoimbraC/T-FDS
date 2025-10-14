@@ -1,6 +1,5 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Apresentacao;
 
-import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos.CozinhaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bcopstein.ex4_lancheriaddd_v1.Aplicacao.PedidoUC;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.PedidoRequestDto;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos.CozinhaService;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos.PedidoService;
 
 @RestController

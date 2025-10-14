@@ -1,6 +1,7 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Dados;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -9,11 +10,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.PedidosRepository;
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.ProdutosRepository;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Cliente;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.ItemPedido;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Produto;
-import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.ProdutosRepository;
 
 @Repository
 public class PedidosRepositoryJDBC implements PedidosRepository {
@@ -28,19 +29,22 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
 
     @Override
     public Optional<Pedido> findByCodigo(long codigo) {
-        String sql = "select id, email_cliente, endereco_entrega, status, data_pagamento, valor_itens, desconto, impostos, valor_total " +
-                     "from pedidos where id = ?";
+        String sql = "SELECT * FROM pedidos WHERE id = ?";
         List<Pedido> lst = jdbc.query(sql, ps -> ps.setLong(1, codigo), (rs, rn) -> mapPedidoCab(rs));
         if (lst.isEmpty()) return Optional.empty();
-        Pedido p = lst.getFirst();
+        Pedido p = lst.get(0);
         p.getItens().addAll(carregarItens(p.getId()));
         return Optional.of(p);
     }
 
     @Override
     public List<Pedido> findByClienteEmailAndPeriodo(String email, LocalDateTime inicio, LocalDateTime fim) {
-        String sql = "select id, email_cliente, endereco_entrega, status, data_pagamento, valor_itens, desconto, impostos, valor_total " +
-                     "from pedidos where email_cliente = ? and criado_em >= ? and criado_em < ?";
+        String sql = """
+            SELECT * FROM pedidos 
+            WHERE email_cliente = ? 
+              AND criado_em >= ? 
+              AND criado_em <= ?
+            """;
         return jdbc.query(sql, ps -> {
             ps.setString(1, email);
             ps.setObject(2, inicio);
@@ -50,8 +54,13 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
 
     @Override
     public void salvar(Pedido pedido, LocalDateTime criadoEm) {
-        String sqlPed = "insert into pedidos (id, email_cliente, endereco_entrega, status, data_pagamento, valor_itens, desconto, impostos, valor_total, criado_em) " +
-                        "values (?,?,?,?,?,?,?,?,?,?)";
+        String sqlPed = """
+            INSERT INTO pedidos 
+            (id, email_cliente, endereco_entrega, status, data_pagamento, 
+             valor_itens, desconto, impostos, valor_total, criado_em)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
+            """;
+
         jdbc.update(sqlPed, ps -> {
             ps.setLong(1, pedido.getId());
             ps.setString(2, pedido.getCliente().getEmail());
@@ -64,7 +73,9 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
             ps.setDouble(9, pedido.getValorCobrado());
             ps.setObject(10, criadoEm);
         });
-        String sqlItem = "insert into pedido_itens (pedido_id, produto_id, quantidade) values (?,?,?)";
+
+        String sqlItem = "INSERT INTO pedido_itens (pedido_id, produto_id, quantidade) VALUES (?,?,?)";
+
         for (ItemPedido it : pedido.getItens()) {
             jdbc.update(sqlItem, ps -> {
                 ps.setLong(1, pedido.getId());
@@ -76,7 +87,7 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
 
     @Override
     public void atualizarPagamento(long id, LocalDateTime dataPagamento) {
-        String sql = "update pedidos set data_pagamento = ?, status = ? where id = ?";
+        String sql = "UPDATE pedidos SET data_pagamento = ?, status = ? WHERE id = ?";
         jdbc.update(sql, ps -> {
             ps.setObject(1, dataPagamento);
             ps.setString(2, Pedido.Status.PAGO.name());
@@ -84,7 +95,16 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
         });
     }
 
-    private Pedido mapPedidoCab(ResultSet rs) throws java.sql.SQLException {
+    @Override
+    public void atualizarStatus(long id, Pedido.Status status) {
+        String sql = "UPDATE pedidos SET status = ? WHERE id = ?";
+        jdbc.update(sql, ps -> {
+            ps.setString(1, status.name());
+            ps.setLong(2, id);
+        });
+    }
+
+    private Pedido mapPedidoCab(ResultSet rs) throws SQLException {
         long id = rs.getLong("id");
         String email = rs.getString("email_cliente");
         String endereco = rs.getString("endereco_entrega");
@@ -94,18 +114,43 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
         double desconto = rs.getDouble("desconto");
         double impostos = rs.getDouble("impostos");
         double total = rs.getDouble("valor_total");
-        Cliente cli = new Cliente("", "", "", endereco, email);
-        return new Pedido(id, cli, dataPag, new java.util.ArrayList<>(),
-                Pedido.Status.valueOf(status), valor, impostos, desconto, total);
+
+        Cliente cli = new Cliente(null, null, null, endereco, email);
+
+        return new Pedido(
+            id, cli, dataPag,
+            new java.util.ArrayList<>(),
+            Pedido.Status.valueOf(status),
+            valor, impostos, desconto, total
+        );
     }
 
     private List<ItemPedido> carregarItens(long pedidoId) {
-        String sql = "select produto_id, quantidade from pedido_itens where pedido_id = ?";
+        String sql = "SELECT produto_id, quantidade FROM pedido_itens WHERE pedido_id = ?";
         return jdbc.query(sql, ps -> ps.setLong(1, pedidoId), (rs, rn) -> {
             long prodId = rs.getLong("produto_id");
             int qt = rs.getInt("quantidade");
             Produto p = produtosRepository.recuperaProdutoPorid(prodId);
             return new ItemPedido(p, qt);
+        });
+    }
+
+    @Override
+    public List<Pedido> findByStatusAndPeriodo(String status, LocalDateTime inicio, LocalDateTime fim) {
+        String sql = """
+            SELECT * FROM pedidos 
+            WHERE status = ? 
+              AND data_pagamento BETWEEN ? AND ?
+            ORDER BY data_pagamento
+            """;
+        return jdbc.query(sql, ps -> {
+            ps.setString(1, status);
+            ps.setObject(2, inicio);
+            ps.setObject(3, fim);
+        }, (rs, rn) -> {
+            Pedido pedido = mapPedidoCab(rs);
+            pedido.getItens().addAll(carregarItens(pedido.getId()));
+            return pedido;
         });
     }
 }

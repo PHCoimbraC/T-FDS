@@ -1,14 +1,16 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.PedidosRepository;
-
-import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.ItemPedidoDto;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.ProdutosRepository;
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.ItemPedidoDto;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Cliente;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.ItemPedido;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
@@ -98,4 +100,5 @@ public class PedidoService {
         pedidosRepository.atualizarPagamento(pedido.getId(), LocalDateTime.now());
         return pedido;
     }
+
 }
