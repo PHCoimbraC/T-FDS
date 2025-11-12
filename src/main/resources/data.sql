@@ -30,39 +30,45 @@ INSERT INTO receitas (id, titulo) VALUES (2, 'Pizza queijo e presunto');
 INSERT INTO receitas (id, titulo) VALUES (3, 'Pizza margherita');
 
 -- Associação dos ingredientes à receita Pizza calabresa
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (1, 1); -- Disco de pizza
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (1, 6); -- Molho de tomate (200ml)
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (1, 3); -- Porcao de mussarela
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (1, 5); -- Porcao de calabresa
--- Associação dos ingredientes à receita Pizza queijo e presunto
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (2, 1); -- Disco de pizza
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (2, 6); -- Molho de tomate (200ml)
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (2, 3); -- Porcao de mussarela
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (2, 4); -- Porcao de presunto
--- Associação dos ingredientes à receita Pizza margherita
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (3, 1); -- Disco de pizza
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (3, 6); -- Molho de tomate (200ml)
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (3, 3); -- Porcao de mussarela
-INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (3, 8); -- Porcao de cebola
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (1, 1);
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (1, 6);
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (1, 3);
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (1, 5);
 
--- insercao dos produtos
-INSERT INTO produtos (id,descricao,preco) VALUES (1,'Pizza calabresa',5500);
-INSERT INTO produtos (id,descricao,preco) VALUES (2,'Pizza queijo e presunto',6000);
-INSERT INTO produtos (id,descricao,preco) VALUES (3,'Pizza margherita',4000);
+-- Associação dos ingredientes à receita Pizza queijo e presunto
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (2, 1);
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (2, 6);
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (2, 3);
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (2, 4);
+
+-- Associação dos ingredientes à receita Pizza margherita
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (3, 1);
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (3, 6);
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (3, 3);
+INSERT INTO receita_ingrediente (receita_id, ingrediente_id) VALUES (3, 8);
+
+-- Inserção dos produtos
+INSERT INTO produtos (id, descricao, preco) VALUES (1, 'Pizza calabresa', 5500);
+INSERT INTO produtos (id, descricao, preco) VALUES (2, 'Pizza queijo e presunto', 6000);
+INSERT INTO produtos (id, descricao, preco) VALUES (3, 'Pizza margherita', 4000);
 
 -- Associação dos produtos com as receitas
-INSERT INTO produto_receita (produto_id,receita_id) VALUES(1,1);
-INSERT INTO produto_receita (produto_id,receita_id) VALUES(2,2);
-INSERT INTO produto_receita (produto_id,receita_id) VALUES(3,3);
+INSERT INTO produto_receita (produto_id, receita_id) VALUES (1, 1);
+INSERT INTO produto_receita (produto_id, receita_id) VALUES (2, 2);
+INSERT INTO produto_receita (produto_id, receita_id) VALUES (3, 3);
 
--- Insercao dos cardapios
-INSERT INTO cardapios (id,titulo) VALUES(1,'Cardapio de Agosto');
-INSERT INTO cardapios (id,titulo) VALUES(2,'Cardapio de Setembro');
+-- Inserção dos cardápios
+INSERT INTO cardapios (id, titulo) VALUES (1, 'Cardápio de Agosto');
+INSERT INTO cardapios (id, titulo) VALUES (2, 'Cardápio de Setembro');
 
--- Associação dos cardapios com os produtos
-INSERT INTO cardapio_produto (cardapio_id,produto_id) VALUES (1,1);
-INSERT INTO cardapio_produto (cardapio_id,produto_id) VALUES (1,2);
-INSERT INTO cardapio_produto (cardapio_id,produto_id) VALUES (1,3);
+-- Associação dos cardápios com os produtos
+INSERT INTO cardapio_produto (cardapio_id, produto_id) VALUES (1, 1);
+INSERT INTO cardapio_produto (cardapio_id, produto_id) VALUES (1, 2);
+INSERT INTO cardapio_produto (cardapio_id, produto_id) VALUES (1, 3);
+INSERT INTO cardapio_produto (cardapio_id, produto_id) VALUES (2, 1);
+INSERT INTO cardapio_produto (cardapio_id, produto_id) VALUES (2, 3);
 
-INSERT INTO cardapio_produto (cardapio_id,produto_id) VALUES (2,1);
-INSERT INTO cardapio_produto (cardapio_id,produto_id) VALUES (2,3);
+-- Usuário MASTER padrão
+INSERT INTO usuarios (nome, cpf, celular, endereco, email, senha, tipo, data_cadastro, ativo)
+VALUES ('Administrador', NULL, NULL, NULL, 'master@pizzaria.com', 'master123', 'MASTER', NOW(), TRUE);
+    

@@ -85,3 +85,25 @@ create table if not exists pedido_itens (
   foreign key (pedido_id) references pedidos(id),
   foreign key (produto_id) references produtos(id)
 );
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    cpf VARCHAR(14),
+    celular VARCHAR(20),
+    endereco VARCHAR(500),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    tipo VARCHAR(20) NOT NULL,
+    data_cadastro TIMESTAMP NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    
+    CONSTRAINT uk_usuarios_email UNIQUE (email),
+    CONSTRAINT uk_usuarios_cpf UNIQUE (cpf)
+);
+
+CREATE INDEX idx_usuarios_email ON usuarios(email);
+CREATE INDEX idx_usuarios_cpf ON usuarios(cpf);
+CREATE INDEX idx_usuarios_tipo ON usuarios(tipo);
+
+
