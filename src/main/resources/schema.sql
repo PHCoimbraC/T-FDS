@@ -102,6 +102,17 @@ CREATE TABLE IF NOT EXISTS usuarios (
     CONSTRAINT uk_usuarios_cpf UNIQUE (cpf)
 );
 
+-- Tabela de configurações do sistema
+CREATE TABLE IF NOT EXISTS configuracoes (
+    chave VARCHAR(100) PRIMARY KEY,
+    valor VARCHAR(255) NOT NULL
+);
+
+-- Definir cardápio inicial como ativo (ID 1)
+MERGE INTO configuracoes (chave, valor) 
+KEY(chave) 
+VALUES ('cardapio_ativo_id', '1');
+
 CREATE INDEX idx_usuarios_email ON usuarios(email);
 CREATE INDEX idx_usuarios_cpf ON usuarios(cpf);
 CREATE INDEX idx_usuarios_tipo ON usuarios(tipo);
