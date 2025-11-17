@@ -1,5 +1,8 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Apresentacao;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,22 +42,34 @@ public class PedidoController {
         this.authHelper = authHelper;  // ← ADICIONADO
     }
 
-    // ← MÉTODO ATUALIZADO
     @PostMapping("/fazerPedido")
-    public ResponseEntity<Pedido> fazerPedido(@RequestBody PedidoRequestDto pedidoDTO,
-                                               HttpServletRequest request){
-        // Pegar usuário autenticado da sessão
-        Usuario usuario = authHelper.getUsuarioAutenticado(request);
-        
-        // Usar o email do usuário autenticado (não do JSON)
-        pedidoDTO.setEmailCliente(usuario.getEmail());
-        
-        Pedido aprovadoOuNegado = PedidoUC.run(pedidoDTO);
-        if (aprovadoOuNegado.getStatus() == Pedido.Status.APROVADO){
-            return ResponseEntity.ok(aprovadoOuNegado);
+        public ResponseEntity<?> fazerPedido(@RequestBody PedidoRequestDto pedidoDTO,
+                                            HttpServletRequest request){
+            // Pegar usuário autenticado da sessão
+            Usuario usuario = authHelper.getUsuarioAutenticado(request);
+            
+            // Usar o email do usuário autenticado (não do JSON)
+            pedidoDTO.setEmailCliente(usuario.getEmail());
+            
+            Pedido pedido = PedidoUC.run(pedidoDTO);
+            
+            // Se aprovado, retorna 200 OK
+            if (pedido.getStatus() == Pedido.Status.APROVADO){
+                return ResponseEntity.ok(pedido);
+            }
+            
+            // Se negado por estoque, retorna 400 com mensagem clara
+            if (pedido.getStatus() == Pedido.Status.NEGADO) {
+                Map<String, Object> erro = new HashMap<>();
+                erro.put("status", "NEGADO");
+                erro.put("mensagem", "Pedido negado: estoque insuficiente para um ou mais produtos");
+                erro.put("pedido", pedido);
+                return ResponseEntity.badRequest().body(erro);
+            }
+            
+            // Outros casos de erro
+            return ResponseEntity.badRequest().body(pedido);
         }
-        return ResponseEntity.badRequest().body(aprovadoOuNegado);
-    }
 
     // ← MÉTODO ATUALIZADO
     @DeleteMapping("/{id}/cancelar")

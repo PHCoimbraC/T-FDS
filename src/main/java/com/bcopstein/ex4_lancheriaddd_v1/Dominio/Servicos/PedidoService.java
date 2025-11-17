@@ -15,8 +15,6 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.ItemPedido;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Produto;
 
-import javax.management.AttributeNotFoundException;
-
 @Service
 public class PedidoService {
     private long x = 0;
@@ -44,33 +42,40 @@ public class PedidoService {
     }
 
     public Pedido submeterPedido(Cliente cliente, List<ItemPedidoDto> listaItens) {
-        List<ItemPedido> itens = new ArrayList<>();
-        for (ItemPedidoDto i : listaItens) {
-            Produto p = produtosRepository.recuperaProdutoPorid(i.getProdutoId());
-            if (p == null) {
-                return new Pedido(0, cliente, null, List.of(), Pedido.Status.NOVO, 0, 0, 0, 0);
-            }
-            itens.add(new ItemPedido(p, i.getQuantidade()));
+    List<ItemPedido> itens = new ArrayList<>();
+    for (ItemPedidoDto i : listaItens) {
+        Produto p = produtosRepository.recuperaProdutoPorid(i.getProdutoId());
+        if (p == null) {
+            System.out.println("Produto não encontrado: " + i.getProdutoId());
+            return new Pedido(0, cliente, null, List.of(), Pedido.Status.NEGADO, 0, 0, 0, 0);
         }
-
-        boolean estoqueOk = estoqueService.verificarDisponibilidade(itens);
-        if (!estoqueOk) {
-            return new Pedido(0, cliente, null, itens, Pedido.Status.NOVO, 0, 0, 0, 0);
-        }
-
-        double subtotal = itens.stream().mapToDouble(ip -> ip.getItem().getPreco() * ip.getQuantidade()).sum();
-        double desconto = descontosService.calcularDesconto(cliente, itens);
-        double impostos = impostosService.calcularImpostos(subtotal - desconto);
-        double total = subtotal - desconto + impostos;
-
-        x = x + 1;
-        Pedido pedido = new Pedido(x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total
-        );
-
-        pedidosRepository.salvar(pedido, LocalDateTime.now());
-
-        return pedido;
+        itens.add(new ItemPedido(p, i.getQuantidade()));
     }
+
+    // Verifica disponibilidade no estoque
+    boolean estoqueOk = estoqueService.verificarDisponibilidade(itens);
+    if (!estoqueOk) {
+        System.out.println("Pedido NEGADO por falta de estoque");
+        return new Pedido(0, cliente, null, itens, Pedido.Status.NEGADO, 0, 0, 0, 0);
+    }
+
+    // Dar baixa no estoque ANTES de salvar o pedido
+    estoqueService.darBaixaEstoque(itens);
+    System.out.println("Estoque baixado com sucesso");
+
+    double subtotal = itens.stream().mapToDouble(ip -> ip.getItem().getPreco() * ip.getQuantidade()).sum();
+    double desconto = descontosService.calcularDesconto(cliente, itens);
+    double impostos = impostosService.calcularImpostos(subtotal - desconto);
+    double total = subtotal - desconto + impostos;
+
+    x = x + 1;
+    Pedido pedido = new Pedido(x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total);
+
+    pedidosRepository.salvar(pedido, LocalDateTime.now());
+    System.out.println("Pedido APROVADO e salvo - ID: " + pedido.getId());
+
+    return pedido;
+}
 
     public Pedido cancelarPedido(Long id) {
         Optional<Pedido> pedidoOptional = pedidosRepository.findByCodigo(id);

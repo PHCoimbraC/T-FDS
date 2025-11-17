@@ -11,11 +11,11 @@ create table if not exists ingredientes (
   descricao varchar(255) not null
 );
 
-create table if not exists itensEstoque(
-    id bigint primary key,
-    quantidade int,
-    ingrediente_id bigint,
-    foreign key (ingrediente_id) references ingredientes(id)
+CREATE TABLE IF NOT EXISTS ITENS_ESTOQUE (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ingrediente_id BIGINT NOT NULL,
+    quantidade INT NOT NULL,
+    FOREIGN KEY (ingrediente_id) REFERENCES ingredientes(id)
 );
 
 -- Tabela Receita

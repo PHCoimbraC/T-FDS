@@ -13,6 +13,14 @@ spring:
     console:
       enabled: true
       path: /h2
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
 logging:
   level:
     org:
@@ -20,7 +28,9 @@ logging:
         jdbc: DEBUG
     com:
       bcopstein: DEBUG
+
 application:
   name: ex4-lancheriaddd-v1
+
 server:
   port: 8080

@@ -7,6 +7,7 @@ public class Pedido {
     public enum Status {
         NOVO,
         APROVADO,
+        NEGADO,
         PAGO,
         AGUARDANDO,
         PREPARACAO,
