@@ -76,12 +76,12 @@ public class EstoqueController {
             Usuario usuario = authHelper.getUsuarioAutenticado(request);
             
             if (!usuario.isMaster()) {
-                return ResponseEntity.status(403).body(Map.of("erro", "Apenas MASTER pode repor estoque"));
+                return ResponseEntity.status(403).body(Map.of("ERRO", "Apenas MASTER pode repor estoque"));
             }
 
             Integer quantidade = body.get("quantidade");
             if (quantidade == null || quantidade <= 0) {
-                return ResponseEntity.badRequest().body(Map.of("erro", "Quantidade inválida"));
+                return ResponseEntity.badRequest().body(Map.of("ERRO", "Quantidade inválida"));
             }
 
             ItemEstoque item = estoqueService.reporEstoque(ingredienteId, quantidade);
@@ -94,9 +94,9 @@ public class EstoqueController {
 
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("ERRO", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("erro", "Erro ao repor estoque"));
+            return ResponseEntity.status(500).body(Map.of("ERRO", "ERRO ao repor estoque"));
         }
     }
 }

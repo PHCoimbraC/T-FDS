@@ -29,7 +29,7 @@ public class PedidoController {
     private final PedidoUC PedidoUC;
     private final PedidoService PedidoService;
     private final CozinhaService cozinhaService;
-    private final AuthHelper authHelper;  // ← ADICIONADO
+    private final AuthHelper authHelper;
 
     // ← CONSTRUTOR ATUALIZADO
     public PedidoController(PedidoUC PedidoUC, 
@@ -39,7 +39,7 @@ public class PedidoController {
         this.PedidoUC = PedidoUC;
         this.PedidoService = PedidoService;
         this.cozinhaService = cozinhaService;
-        this.authHelper = authHelper;  // ← ADICIONADO
+        this.authHelper = authHelper;
     }
 
     @PostMapping("/fazerPedido")
