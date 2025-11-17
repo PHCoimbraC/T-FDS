@@ -33,12 +33,12 @@ create table if not exists receita_ingrediente (
   foreign key (ingrediente_id) references ingredientes(id)
 );
 
--- Tabela de Produtos
 create table if not exists produtos (
-  id bigint primary key,
-  descricao varchar(255) not null,
-  preco bigint
-);
+    id bigint primary key,
+    descricao varchar(255) not null,
+    preco bigint,
+    disponivel boolean not null default true
+    );
 
 -- Tabela de relacionamento entre Produto e Receita
 create table if not exists produto_receita (

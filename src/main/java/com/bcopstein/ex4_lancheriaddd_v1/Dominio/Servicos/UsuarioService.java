@@ -16,9 +16,6 @@ public class UsuarioService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    /**
-     * Registra um novo usuário cliente
-     */
     public Usuario registrarCliente(String nome, String cpf, String celular, 
                                      String endereco, String email, String senha) {
         // Validações
@@ -30,7 +27,6 @@ public class UsuarioService {
             throw new IllegalArgumentException("CPF já cadastrado");
         }
 
-        // Criptografar senha (em produção, usar BCrypt ou similar)
         String senhaCriptografada = criptografarSenha(senha);
 
         Usuario novoUsuario = new Usuario(
@@ -49,9 +45,6 @@ public class UsuarioService {
         return usuarioRepository.salvar(novoUsuario);
     }
 
-    /**
-     * Autentica um usuário
-     */
     public Optional<Usuario> autenticar(String email, String senha) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
         
@@ -73,30 +66,18 @@ public class UsuarioService {
         return Optional.empty();
     }
 
-    /**
-     * Busca um usuário por email
-     */
     public Optional<Usuario> buscarPorEmail(String email) {
         return usuarioRepository.findByEmail(email);
     }
 
-    /**
-     * Busca um usuário por ID
-     */
     public Optional<Usuario> buscarPorId(Long id) {
         return usuarioRepository.findById(id);
     }
 
-    /**
-     * Atualiza os dados de um usuário
-     */
     public void atualizar(Usuario usuario) {
         usuarioRepository.atualizar(usuario);
     }
 
-    /**
-     * Altera a senha de um usuário
-     */
     public void alterarSenha(Long usuarioId, String senhaAntiga, String senhaNova) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
         
@@ -115,9 +96,6 @@ public class UsuarioService {
         usuarioRepository.atualizar(usuario);
     }
 
-    /**
-     * Desativa um usuário
-     */
     public void desativar(Long usuarioId) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
         
@@ -130,9 +108,6 @@ public class UsuarioService {
         usuarioRepository.atualizar(usuario);
     }
 
-    /**
-     * Cria o usuário master no sistema (chamado na inicialização)
-     */
     public void criarUsuarioMasterSeNaoExistir() {
         String emailMaster = "master@pizzaria.com";
         
@@ -154,7 +129,7 @@ public class UsuarioService {
         }
     }
 
-    
+
     private String criptografarSenha(String senha) {
         return senha;
     }

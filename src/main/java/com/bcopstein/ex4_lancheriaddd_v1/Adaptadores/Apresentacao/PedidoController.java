@@ -1,8 +1,5 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Apresentacao;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,67 +23,50 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("/pedidos")
 @CrossOrigin("*")
 public class PedidoController {
-    private final PedidoUC PedidoUC;
-    private final PedidoService PedidoService;
+    private final PedidoUC pedidoUC;
+    private final PedidoService pedidoService;
     private final CozinhaService cozinhaService;
     private final AuthHelper authHelper;
 
-    // ← CONSTRUTOR ATUALIZADO
-    public PedidoController(PedidoUC PedidoUC, 
-                           PedidoService PedidoService, 
-                           CozinhaService cozinhaService,
-                           AuthHelper authHelper) {
-        this.PedidoUC = PedidoUC;
-        this.PedidoService = PedidoService;
+    public PedidoController(PedidoUC pedidoUC,
+                            PedidoService pedidoService,
+                            CozinhaService cozinhaService,
+                            AuthHelper authHelper) {
+        this.pedidoUC = pedidoUC;
+        this.pedidoService = pedidoService;
         this.cozinhaService = cozinhaService;
         this.authHelper = authHelper;
     }
 
     @PostMapping("/fazerPedido")
-        public ResponseEntity<?> fazerPedido(@RequestBody PedidoRequestDto pedidoDTO,
-                                            HttpServletRequest request){
-            // Pegar usuário autenticado da sessão
-            Usuario usuario = authHelper.getUsuarioAutenticado(request);
-            
-            // Usar o email do usuário autenticado (não do JSON)
-            pedidoDTO.setEmailCliente(usuario.getEmail());
-            
-            Pedido pedido = PedidoUC.run(pedidoDTO);
-            
-            // Se aprovado, retorna 200 OK
-            if (pedido.getStatus() == Pedido.Status.APROVADO){
-                return ResponseEntity.ok(pedido);
-            }
-            
-            // Se negado por estoque, retorna 400 com mensagem clara
-            if (pedido.getStatus() == Pedido.Status.NEGADO) {
-                Map<String, Object> erro = new HashMap<>();
-                erro.put("status", "NEGADO");
-                erro.put("mensagem", "Pedido negado: estoque insuficiente para um ou mais produtos");
-                erro.put("pedido", pedido);
-                return ResponseEntity.badRequest().body(erro);
-            }
-            
-            // Outros casos de erro
-            return ResponseEntity.badRequest().body(pedido);
-        }
+    public ResponseEntity<Pedido> fazerPedido(@RequestBody PedidoRequestDto pedidoDTO,
+                                              HttpServletRequest request) {
+        Usuario usuario = authHelper.getUsuarioAutenticado(request);
 
-    // ← MÉTODO ATUALIZADO
+        // Sempre usar o email do usuário autenticado
+        pedidoDTO.setEmailCliente(usuario.getEmail());
+
+        Pedido aprovadoOuNegado = pedidoUC.run(pedidoDTO);
+        if (aprovadoOuNegado.getStatus() == Pedido.Status.APROVADO) {
+            return ResponseEntity.ok(aprovadoOuNegado);
+        }
+        return ResponseEntity.badRequest().body(aprovadoOuNegado);
+    }
+
     @DeleteMapping("/{id}/cancelar")
     public ResponseEntity<Pedido> cancelarPedido(@PathVariable Long id,
-                                                  HttpServletRequest request) {
-        // Pegar usuário autenticado
+                                                 HttpServletRequest request) {
         Usuario usuario = authHelper.getUsuarioAutenticado(request);
-        
-        Pedido pedidoCancelado = PedidoService.cancelarPedido(id);
+
+        Pedido pedidoCancelado = pedidoService.cancelarPedido(id);
         if (pedidoCancelado == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // Verificar se o pedido pertence ao usuário (ou se é master)
-        if (!pedidoCancelado.getCliente().getEmail().equals(usuario.getEmail()) 
-            && !usuario.isMaster()) {
-            return ResponseEntity.status(403).build(); // Forbidden
+        // Somente o dono do pedido ou o MASTER podem cancelar
+        if (!pedidoCancelado.getCliente().getEmail().equals(usuario.getEmail())
+                && !usuario.isMaster()) {
+            return ResponseEntity.status(403).build();
         }
 
         if (pedidoCancelado.getStatus() != Pedido.Status.NOVO) {
@@ -96,27 +76,26 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoCancelado);
     }
 
-    // ← MÉTODO ATUALIZADO
     @PostMapping("/{id}/pagar")
     public ResponseEntity<String> pagar(@PathVariable Long id,
                                         HttpServletRequest request) {
-        // Pegar usuário autenticado
         Usuario usuario = authHelper.getUsuarioAutenticado(request);
-        
-        var pedido = PedidoService.pagarPedido(id);
+
+        Pedido pedido = pedidoService.pagarPedido(id);
         if (pedido == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // Verificar se o pedido pertence ao usuário (ou se é master)
-        if (!pedido.getCliente().getEmail().equals(usuario.getEmail()) 
-            && !usuario.isMaster()) {
-            return ResponseEntity.status(403).build(); // Forbidden
+        // Somente o dono do pedido ou o MASTER podem pagar
+        if (!pedido.getCliente().getEmail().equals(usuario.getEmail())
+                && !usuario.isMaster()) {
+            return ResponseEntity.status(403).build();
         }
 
         if (pedido.getStatus() != Pedido.Status.PAGO) {
             return ResponseEntity.badRequest().body("Pedido não aprovado");
         }
+
         cozinhaService.chegadaDePedido(pedido);
         return ResponseEntity.ok("pago");
     }

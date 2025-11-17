@@ -5,37 +5,26 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 
-/**
- * Helper para gerenciar autenticação via sessão
- */
+
 @Component
 public class AuthHelper {
 
     private static final String USER_SESSION_KEY = "usuarioAutenticado";
 
-    /**
-     * Adiciona o usuário na sessão após login
-     */
     public void login(HttpServletRequest request, Usuario usuario) {
         HttpSession session = request.getSession(true);
         session.setAttribute(USER_SESSION_KEY, usuario);
-        System.out.println("✅ Usuário " + usuario.getEmail() + " logado na sessão");
+        System.out.println("  Usuário " + usuario.getEmail() + " logado");
     }
 
-    /**
-     * Remove o usuário da sessão (logout)
-     */
     public void logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
-            System.out.println("✅ Sessão invalidada (logout)");
+            System.out.println("Sessão invalidada (logout)");
         }
     }
 
-    /**
-     * Verifica se há um usuário autenticado na sessão
-     */
     public boolean isAuthenticated(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
@@ -45,9 +34,6 @@ public class AuthHelper {
         return usuario != null && usuario.isAtivo();
     }
 
-    /**
-     * Obtém o usuário autenticado da sessão atual
-     */
     public Usuario getUsuarioAutenticado(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         
@@ -68,9 +54,7 @@ public class AuthHelper {
         return usuario;
     }
 
-    /**
-     * Verifica se o usuário autenticado é MASTER
-     */
+
     public boolean isMaster(HttpServletRequest request) {
         try {
             Usuario usuario = getUsuarioAutenticado(request);
@@ -80,9 +64,6 @@ public class AuthHelper {
         }
     }
 
-    /**
-     * Verifica se o usuário autenticado é CLIENTE
-     */
     public boolean isCliente(HttpServletRequest request) {
         try {
             Usuario usuario = getUsuarioAutenticado(request);

@@ -5,8 +5,9 @@ public class Produto {
     private String descricao;
     private Receita receita;
     private int preco;
+    private boolean disponivel; // novo campo
 
-    public Produto(long id,String descricao, Receita receita, int preco) {
+    public Produto(long id, String descricao, Receita receita, int preco) {
         if (!Produto.precoValido(preco))
             throw new IllegalArgumentException("Preco invalido: " + preco);
         if (descricao == null || descricao.length() == 0)
@@ -17,6 +18,7 @@ public class Produto {
         this.descricao = descricao;
         this.receita = receita;
         this.preco = preco;
+        this.disponivel = true; // padrão: disponível
     }
 
     public long getId(){
@@ -41,14 +43,21 @@ public class Produto {
         this.preco = preco;
     }
 
-    // Valida um preco (preco em centavos)
+    public boolean isDisponivel() {
+        return disponivel;
+    }
+
+    public void setDisponivel(boolean disponivel) {
+        this.disponivel = disponivel;
+    }
+
     public static boolean precoValido(int preco) {
         return preco > 0;
     }
 
     @Override
     public String toString() {
-        return "Produto [id=" + id + ", descricao=" + descricao + ", receita=" + receita + ", preco=" + preco + "]";
+        return "Produto [id=" + id + ", descricao=" + descricao + ", receita=" + receita +
+                ", preco=" + preco + ", disponivel=" + disponivel + "]";
     }
-    
 }

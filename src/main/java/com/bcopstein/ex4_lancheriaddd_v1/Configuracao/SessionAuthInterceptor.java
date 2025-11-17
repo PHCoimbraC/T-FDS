@@ -21,29 +21,25 @@ public class SessionAuthInterceptor implements HandlerInterceptor {
         String path = request.getRequestURI();
         String method = request.getMethod();
         
-        System.out.println("\n=== SESSION AUTH INTERCEPTOR ===");
         System.out.println("Path: " + path);
         System.out.println("Method: " + method);
 
         // URLs públicas - não precisam autenticação
         if (isPublicUrl(path)) {
-            System.out.println("✅ URL PÚBLICA - acesso liberado");
-            System.out.println("================================\n");
+            System.out.println("URL PÚBLICA");
             return true;
         }
 
         // Verificar se está autenticado
         if (!authHelper.isAuthenticated(request)) {
-            System.out.println("❌ NÃO AUTENTICADO - acesso negado");
-            System.out.println("================================\n");
+            System.out.println("NÃO AUTENTICADO");
             response.setStatus(401);
             response.setContentType("application/json; charset=UTF-8");
-            response.getWriter().write("{\"erro\": \"Usuário não autenticado. Faça login primeiro.\"}");
+            response.getWriter().write("{\"erro\": \"Usuário não autenticado\"}");
             return false;
         }
 
-        System.out.println("✅ AUTENTICADO - acesso liberado");
-        System.out.println("================================\n");
+        System.out.println("AUTENTICADO ");
         return true;
     }
 

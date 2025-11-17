@@ -24,45 +24,80 @@ public class ProdutosRepositoryJDBC implements ProdutosRepository {
 
     @Override
     public List<Produto> recuperaProdutosCardapio(long id) {
-        String sql = "SELECT p.id, p.descricao, p.preco, pr.receita_id " +
-                     "FROM produtos p " +
-                     "JOIN cardapio_produto cp ON p.id = cp.produto_id " +
-                     "JOIN produto_receita pr ON p.id = pr.produto_id " +
-                     "WHERE cp.cardapio_id = ?";
+        String sql = "SELECT p.id, p.descricao, p.preco, p.disponivel, pr.receita_id " +
+                "FROM produtos p " +
+                "JOIN cardapio_produto cp ON p.id = cp.produto_id " +
+                "JOIN produto_receita pr ON p.id = pr.produto_id " +
+                "WHERE cp.cardapio_id = ? AND p.disponivel = TRUE";
         List<Produto> produtos = this.jdbcTemplate.query(
-            sql,
-            ps -> ps.setLong(1, id),
-            (rs, rowNum) -> {
-                long produtoId = rs.getLong("id");
-                String descricao = rs.getString("descricao");
-                int preco = rs.getInt("preco");
-                long receitaId = rs.getLong("receita_id");
-                Receita receita = receitasRepository.recuperaReceita(receitaId);
-                return new Produto(produtoId, descricao, receita, preco);
-            }
+                sql,
+                ps -> ps.setLong(1, id),
+                (rs, rowNum) -> {
+                    long produtoId = rs.getLong("id");
+                    String descricao = rs.getString("descricao");
+                    int preco = rs.getInt("preco");
+                    boolean disponivel = rs.getBoolean("disponivel");
+                    long receitaId = rs.getLong("receita_id");
+                    Receita receita = receitasRepository.recuperaReceita(receitaId);
+                    Produto prod = new Produto(produtoId, descricao, receita, preco);
+                    prod.setDisponivel(disponivel);
+                    return prod;
+                }
         );
         return produtos;
     }
 
     @Override
     public Produto recuperaProdutoPorid(long id) {
-        String sql = "SELECT p.id, p.descricao, p.preco, pr.receita_id " +
-                     "FROM produtos p " +
-                     "JOIN produto_receita pr ON p.id = pr.produto_id " +
-                     "WHERE p.id = ?";
+        String sql = "SELECT p.id, p.descricao, p.preco, p.disponivel, pr.receita_id " +
+                "FROM produtos p " +
+                "JOIN produto_receita pr ON p.id = pr.produto_id " +
+                "WHERE p.id = ?";
         List<Produto> produtos = this.jdbcTemplate.query(
-            sql,
-            ps -> ps.setLong(1, id),
-            (rs, rowNum) -> {
-                long produtoId = rs.getLong("id");
-                String descricao = rs.getString("descricao");
-                int preco = rs.getInt("preco");
-                long receitaId = rs.getLong("receita_id");
-                Receita receita = receitasRepository.recuperaReceita(receitaId);
-                return new Produto(produtoId, descricao, receita, preco);
-            }
+                sql,
+                ps -> ps.setLong(1, id),
+                (rs, rowNum) -> {
+                    long produtoId = rs.getLong("id");
+                    String descricao = rs.getString("descricao");
+                    int preco = rs.getInt("preco");
+                    boolean disponivel = rs.getBoolean("disponivel");
+                    long receitaId = rs.getLong("receita_id");
+                    Receita receita = receitasRepository.recuperaReceita(receitaId);
+                    Produto prod = new Produto(produtoId, descricao, receita, preco);
+                    prod.setDisponivel(disponivel);
+                    return prod;
+                }
         );
-        return produtos.isEmpty() ? null : produtos.getFirst();        
+        return produtos.isEmpty() ? null : produtos.getFirst();
     }
-    
+
+    @Override
+    public void marcarProdutosIndisponiveisPorIngrediente(long ingredienteId) {
+        String sql = """
+            UPDATE produtos
+            SET disponivel = FALSE
+            WHERE id IN (
+                SELECT pr.produto_id
+                FROM produto_receita pr
+                JOIN receita_ingrediente ri ON pr.receita_id = ri.receita_id
+                WHERE ri.ingrediente_id = ?
+            )
+            """;
+        jdbcTemplate.update(sql, ps -> ps.setLong(1, ingredienteId));
+    }
+
+    @Override
+    public void marcarProdutosDisponiveisPorIngrediente(long ingredienteId) {
+        String sql = """
+            UPDATE produtos
+            SET disponivel = TRUE
+            WHERE id IN (
+                SELECT pr.produto_id
+                FROM produto_receita pr
+                JOIN receita_ingrediente ri ON pr.receita_id = ri.receita_id
+                WHERE ri.ingrediente_id = ?
+            )
+            """;
+        jdbcTemplate.update(sql, ps -> ps.setLong(1, ingredienteId));
+    }
 }
