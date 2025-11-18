@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ImpostoServiceTest {
 
     @Test
-    void deveCalcularDezPorCentoDaBase() {
+    void deveCalcularDezPorCento() {
         ImpostoService service = new ImpostoService();
 
         assertEquals(0.0, service.calcularImpostos(0.0), 0.0001);

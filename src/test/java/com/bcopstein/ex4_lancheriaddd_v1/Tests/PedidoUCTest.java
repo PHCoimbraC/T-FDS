@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 public class PedidoUCTest {
 
     @Test
-    void deveChamarPedidoServiceComClienteEDadosDoDto() {
+    void ChamarPedidoServiceComCliente() {
         PedidoService pedidoService = mock(PedidoService.class);
         PedidoUC uc = new PedidoUC(pedidoService);
 

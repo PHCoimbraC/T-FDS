@@ -72,7 +72,7 @@ public class ProdutosRepositoryJDBC implements ProdutosRepository {
     }
 
     @Override
-    public void marcarProdutosIndisponiveisPorIngrediente(long ingredienteId) {
+    public void marqueProdutoIndisponivel(long ingredienteId) {
         String sql = """
             UPDATE produtos
             SET disponivel = FALSE

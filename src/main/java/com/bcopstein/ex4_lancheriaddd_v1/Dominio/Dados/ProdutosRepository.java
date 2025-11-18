@@ -8,6 +8,6 @@ public interface ProdutosRepository {
     Produto recuperaProdutoPorid(long id);
     List<Produto> recuperaProdutosCardapio(long id);
 
-    void marcarProdutosIndisponiveisPorIngrediente(long ingredienteId);
+    void marqueProdutoIndisponivel(long ingredienteId);
     void marcarProdutosDisponiveisPorIngrediente(long ingredienteId);
 }

@@ -36,8 +36,8 @@ public class EstoqueService {
                 Optional<ItemEstoque> itemEstoqueOpt = estoqueRepository.findByIngredienteId(ingrediente.getId());
 
                 if (itemEstoqueOpt.isEmpty()) {
-                    System.out.println("Ingrediente não encontradoF " + ingrediente.getDescricao());
-                    produtosRepository.marcarProdutosIndisponiveisPorIngrediente(ingrediente.getId());
+                    System.out.println("Ingrediente não encontrado " + ingrediente.getDescricao());
+                    produtosRepository.marqueProdutoIndisponivel(ingrediente.getId());
                     tudoOk = false;
                     continue;
                 }
@@ -49,7 +49,7 @@ public class EstoqueService {
                     System.out.println("Estoque insuficiente de " + ingrediente.getDescricao() +
                             ". Disponível: " + itemEstoque.getQuantidade() +
                             ", Necessário: " + quantidadeNecessaria);
-                    produtosRepository.marcarProdutosIndisponiveisPorIngrediente(ingrediente.getId());
+                    produtosRepository.marqueProdutoIndisponivel(ingrediente.getId());
                     tudoOk = false;
                 }
             }
@@ -65,7 +65,7 @@ public class EstoqueService {
     }
 
     @Transactional
-    public void darBaixaEstoque(List<ItemPedido> itens) {
+    public void SalvarEstoque(List<ItemPedido> itens) {
         for (ItemPedido itemPedido : itens) {
             Receita receita = itemPedido.getItem().getReceita();
 

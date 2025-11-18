@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.PedidoResponseDto;
 import org.springframework.stereotype.Service;
 
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.PedidosRepository;
@@ -55,13 +56,11 @@ public class PedidoService {
     // Verifica disponibilidade no estoque
     boolean estoqueOk = estoqueService.verificarDisponibilidade(itens);
     if (!estoqueOk) {
-        System.out.println("Pedido NEGADO por falta de estoque");
         return new Pedido(0, cliente, null, itens, Pedido.Status.NEGADO, 0, 0, 0, 0);
     }
 
-    // Dar baixa no estoque ANTES de salvar o pedido
-    estoqueService.darBaixaEstoque(itens);
-    System.out.println("Estoque baixado com sucesso");
+    // Dar salvar estoque
+    estoqueService.SalvarEstoque(itens);
 
     double subtotal = itens.stream().mapToDouble(ip -> ip.getItem().getPreco() * ip.getQuantidade()).sum();
     double desconto = descontosService.calcularDesconto(cliente, itens);
@@ -72,7 +71,6 @@ public class PedidoService {
     Pedido pedido = new Pedido(x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total);
 
     pedidosRepository.salvar(pedido, LocalDateTime.now());
-    System.out.println("Pedido APROVADO e salvo - ID: " + pedido.getId());
 
     return pedido;
 }

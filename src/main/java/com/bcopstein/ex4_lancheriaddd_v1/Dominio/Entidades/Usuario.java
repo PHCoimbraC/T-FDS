@@ -41,9 +41,6 @@ public class Usuario {
         if (senha == null || senha.trim().isEmpty()) {
             throw new IllegalArgumentException("Senha é obrigatória");
         }
-        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            throw new IllegalArgumentException("Email inválido");
-        }
     }
 
     public boolean isMaster() {
@@ -54,7 +51,6 @@ public class Usuario {
         return this.tipo == TipoUsuario.CLIENTE;
     }
 
-    // Getters
     public Long getId() { return id; }
     public String getNome() { return nome; }
     public String getCpf() { return cpf; }
@@ -66,7 +62,6 @@ public class Usuario {
     public LocalDateTime getDataCadastro() { return dataCadastro; }
     public boolean isAtivo() { return ativo; }
 
-    // Setters
     public void setNome(String nome) { this.nome = nome; }
     public void setCpf(String cpf) { this.cpf = cpf; }
     public void setCelular(String celular) { this.celular = celular; }

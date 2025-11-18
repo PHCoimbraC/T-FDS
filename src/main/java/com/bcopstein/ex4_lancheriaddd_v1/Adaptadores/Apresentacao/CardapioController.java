@@ -84,10 +84,6 @@ public class CardapioController {
          return lstCardapios;
     }
 
-    /**
-     * UC: Master define o cardápio ativo
-     * Apenas usuários MASTER podem acessar
-     */
     @PostMapping("/{id}/ativar")
     public ResponseEntity<?> ativarCardapio(@PathVariable long id, HttpServletRequest request) {
         try {
@@ -107,10 +103,6 @@ public class CardapioController {
             response.put("cardapioAtivo", cardapioService.getCardapioAtivo().getTitulo());
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("erro", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("erro", "Erro ao ativar cardápio");
@@ -118,11 +110,8 @@ public class CardapioController {
         }
     }
 
-    /**
-     * Consultar qual cardápio está ativo atualmente
-     */
     @GetMapping("/ativo/info")
-    public ResponseEntity<?> infoCardapioAtivo() {
+    public ResponseEntity<?> CardapioAtivo() {
         try {
             long idAtivo = cardapioService.getCardapioAtivoId();
             var cardapioAtivo = cardapioService.getCardapioAtivo();
@@ -135,7 +124,7 @@ public class CardapioController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("erro", "Erro ao consultar cardápio ativo");
+            error.put("erro", "Erro ao consultar cardápio");
             return ResponseEntity.status(500).body(error);
         }
     }

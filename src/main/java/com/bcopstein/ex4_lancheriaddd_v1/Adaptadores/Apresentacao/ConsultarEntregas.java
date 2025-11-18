@@ -24,28 +24,24 @@ public class ConsultarEntregas {
         this.authHelper = authHelper;
     }
 
-    /**
-     * UC6 - Listar os pedidos entregues entre duas datas (REQUER AUTENTICAÇÃO)
-     * Clientes veem apenas seus pedidos, Masters veem todos
-     */
     @GetMapping("/pedidos/entregues")
     public ResponseEntity<List<Pedido>> listarPedidosEntregues(
         @RequestParam("inicio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
         @RequestParam("fim") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim,
         HttpServletRequest request
     ) {
-        // Verificar autenticação
+        // autenticação
         Usuario usuario = authHelper.getUsuarioAutenticado(request);
         
         List<Pedido> pedidos = listarPedidosUC.run(inicio, fim);
         
-        // Se for cliente, filtrar apenas seus pedidos
+        // filtrar pedidos se for cliente
         if (usuario.isCliente()) {
             pedidos = pedidos.stream()
                 .filter(p -> p.getCliente().getEmail().equals(usuario.getEmail()))
                 .collect(Collectors.toList());
         }
-        // Se for master, retorna todos os pedidos
+        // retorna todos os pedidos se for master
         
         return ResponseEntity.ok(pedidos);
     }

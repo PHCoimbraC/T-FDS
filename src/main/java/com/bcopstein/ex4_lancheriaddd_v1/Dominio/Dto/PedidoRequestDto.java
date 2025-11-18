@@ -10,7 +10,7 @@ public class PedidoRequestDto {
     private String celularCliente;
     private List<ItemPedidoDto> itens;
 
-    // Getters
+    // Get
     public String getEmailCliente() { return emailCliente; }
     public String getEnderecoEntrega() { return enderecoEntrega; }
     public String getNomeCliente() { return nomeCliente; }
@@ -18,7 +18,7 @@ public class PedidoRequestDto {
     public String getCelularCliente() { return celularCliente; }
     public List<ItemPedidoDto> getItens() { return itens; }
 
-    // Setters
+    // Set
     public void setEmailCliente(String emailCliente) { this.emailCliente = emailCliente; }
     public void setEnderecoEntrega(String enderecoEntrega) { this.enderecoEntrega = enderecoEntrega; }
     public void setNomeCliente(String nomeCliente) { this.nomeCliente = nomeCliente; }

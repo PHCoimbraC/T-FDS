@@ -24,13 +24,13 @@ public class SessionAuthInterceptor implements HandlerInterceptor {
         System.out.println("Path: " + path);
         System.out.println("Method: " + method);
 
-        // URLs públicas - não precisam autenticação
+        // url publica
         if (isPublicUrl(path)) {
             System.out.println("URL PÚBLICA");
             return true;
         }
 
-        // Verificar se está autenticado
+        // verificar se está autenticado
         if (!authHelper.isAuthenticated(request)) {
             System.out.println("NÃO AUTENTICADO");
             response.setStatus(401);
@@ -46,7 +46,6 @@ public class SessionAuthInterceptor implements HandlerInterceptor {
     private boolean isPublicUrl(String path) {
         return path.equals("/") ||
                path.startsWith("/cardapio") ||
-                path.startsWith("/usuarios/logout") ||
                 path.startsWith("/error") ||
                path.startsWith("/usuarios/registro") ||
                path.startsWith("/usuarios/login");

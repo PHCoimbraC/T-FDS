@@ -44,27 +44,38 @@ public class PedidoController {
                                                          HttpServletRequest request) {
         Usuario usuario = authHelper.getUsuarioAutenticado(request);
 
-        // Sempre usar o email do usuário autenticado
+        // garantir que seja o email
         pedidoDTO.setEmailCliente(usuario.getEmail());
 
+        // rodar pedido
         Pedido pedido = pedidoUC.run(pedidoDTO);
 
         PedidoResponseDto responseDto = new PedidoResponseDto(
                 pedido.getId(),
                 pedido.getCliente().getEmail(),
                 pedido.getStatus().toString(),
-                pedido.getValorCobrado()
+                pedido.getValorCobrado(),
+                "Pedido criado com sucesso"
         );
 
         if (pedido.getStatus() == Pedido.Status.APROVADO) {
             return ResponseEntity.ok(responseDto);
         }
+
+        responseDto = new PedidoResponseDto(
+                pedido.getId(),
+                pedido.getCliente().getEmail(),
+                pedido.getStatus().toString(),
+                0,
+                "Pedido Negado"
+        );
         return ResponseEntity.badRequest().body(responseDto);
     }
 
     @DeleteMapping("/{id}/cancelar")
     public ResponseEntity<Pedido> cancelarPedido(@PathVariable Long id,
                                                  HttpServletRequest request) {
+
         Usuario usuario = authHelper.getUsuarioAutenticado(request);
 
         Pedido pedidoCancelado = pedidoService.cancelarPedido(id);
@@ -72,7 +83,7 @@ public class PedidoController {
             return ResponseEntity.notFound().build();
         }
 
-        // Somente o dono do pedido ou o MASTER podem cancelar
+        // só o dono do pedido ou o MASTER podem cancelar
         if (!pedidoCancelado.getCliente().getEmail().equals(usuario.getEmail())
                 && !usuario.isMaster()) {
             return ResponseEntity.status(403).build();
@@ -95,7 +106,7 @@ public class PedidoController {
             return ResponseEntity.notFound().build();
         }
 
-        // Somente o dono do pedido ou o MASTER podem pagar
+        // Somente o dono do pedido ou o MASTER pode pagar
         if (!pedido.getCliente().getEmail().equals(usuario.getEmail())
                 && !usuario.isMaster()) {
             return ResponseEntity.status(403).build();

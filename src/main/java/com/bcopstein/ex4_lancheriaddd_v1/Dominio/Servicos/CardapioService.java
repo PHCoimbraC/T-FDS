@@ -13,8 +13,7 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Produto;
 
 @Service
 public class CardapioService {
-    private static final String CHAVE_CARDAPIO_ATIVO = "cardapio_ativo_id";
-    
+
     private CardapioRepository cardapioRepository;
     private ConfiguracaoRepository configuracaoRepository;
 
@@ -37,32 +36,24 @@ public class CardapioService {
         return cardapioRepository.indicacoesDoChef();
     }
 
-    /**
-     * Retorna o ID do cardápio atualmente ativo
-     */
+
     public long getCardapioAtivoId() {
-        return configuracaoRepository.getValor(CHAVE_CARDAPIO_ATIVO)
+        return configuracaoRepository.getValor("cardapio_ativo_id")
             .map(Long::parseLong)
             .orElse(1L);
     }
 
-    /**
-     * Retorna o cardápio atualmente ativo
-     */
     public Cardapio getCardapioAtivo() {
         long idAtivo = getCardapioAtivoId();
         return recuperaCardapio(idAtivo);
     }
 
-    /**
-     * Define qual cardápio está ativo (apenas MASTER)
-     */
     public void setCardapioAtivo(long cardapioId) {
         Cardapio cardapio = recuperaCardapio(cardapioId);
         if (cardapio == null) {
             throw new IllegalArgumentException("Cardápio não encontrado: " + cardapioId);
         }
-        configuracaoRepository.setValor(CHAVE_CARDAPIO_ATIVO, String.valueOf(cardapioId));
+        configuracaoRepository.setValor("cardapio_ativo_id", String.valueOf(cardapioId));
         System.out.println("Cardápio ativo alterado para: " + cardapioId + " - " + cardapio.getTitulo());
     }
 }

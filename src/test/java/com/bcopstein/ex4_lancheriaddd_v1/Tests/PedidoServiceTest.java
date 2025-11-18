@@ -39,7 +39,7 @@ public class PedidoServiceTest {
         cozinhaService = mock(CozinhaService.class);
         pedidosRepository = mock(PedidosRepository.class);
 
-        // Por padrão, sem desconto
+        // sem desconto
         when(descontoService.calcularDesconto(any(), any())).thenReturn(0.0);
 
         pedidoService = new PedidoService(
@@ -53,8 +53,8 @@ public class PedidoServiceTest {
     }
 
     @Test
-    void pedidoAprovadoQuandoProdutosExistemEEstoqueOk() {
-        Cliente cli = new Cliente("1", "Cli", "999", "Rua A", "cli@ex.com");
+    void pedidoAprovado() {
+        Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
 
         ItemPedidoDto itemDto = new ItemPedidoDto();
         itemDto.setProdutoId(1L);
@@ -78,8 +78,8 @@ public class PedidoServiceTest {
     }
 
     @Test
-    void produtoInexistenteRetornaPedidoComIdZeroESemItens() {
-        Cliente cli = new Cliente("1", "Cli", "999", "Rua A", "cli@ex.com");
+    void produtoInexistenteRetornaPedidoComIdZero() {
+        Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
 
         ItemPedidoDto itemDto = new ItemPedidoDto();
         itemDto.setProdutoId(1L);
@@ -95,8 +95,8 @@ public class PedidoServiceTest {
     }
 
     @Test
-    void estoqueIndisponivelRetornaNovoENaoSalva() {
-        Cliente cli = new Cliente("1", "Cli", "999", "Rua A", "cli@ex.com");
+    void estoqueIndisponivel() {
+        Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
 
         ItemPedidoDto itemDto = new ItemPedidoDto();
         itemDto.setProdutoId(1L);
@@ -116,14 +116,14 @@ public class PedidoServiceTest {
     }
 
     @Test
-    void cancelarPedidoInexistenteRetornaNull() {
+    void cancelarPedidoInexistente() {
         when(pedidosRepository.findByCodigo(1L)).thenReturn(Optional.empty());
         assertNull(pedidoService.cancelarPedido(1L));
     }
 
     @Test
-    void cancelarPedidoNaoAprovadoNaoMudaStatus() {
-        Cliente cli = new Cliente("1", "Cli", "999", "Rua A", "cli@ex.com");
+    void cancelarPedidoNaoAprovadoSemMudarStatus() {
+        Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
         Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.PAGO, 0, 0, 0, 0);
 
         when(pedidosRepository.findByCodigo(1L)).thenReturn(Optional.of(ped));
@@ -135,8 +135,8 @@ public class PedidoServiceTest {
     }
 
     @Test
-    void cancelarPedidoAprovadoMudaParaCancelado() {
-        Cliente cli = new Cliente("1", "Cli", "999", "Rua A", "cli@ex.com");
+    void cancelarPedidoAprovado() {
+        Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
         Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.APROVADO, 0, 0, 0, 0);
 
         when(pedidosRepository.findByCodigo(1L)).thenReturn(Optional.of(ped));
@@ -156,7 +156,7 @@ public class PedidoServiceTest {
 
     @Test
     void pagarPedidoNaoAprovadoNaoMudaStatus() {
-        Cliente cli = new Cliente("1", "Cli", "999", "Rua A", "cli@ex.com");
+        Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
         Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.NOVO, 0, 0, 0, 0);
 
         when(pedidosRepository.findByCodigo(1L)).thenReturn(Optional.of(ped));
@@ -169,7 +169,7 @@ public class PedidoServiceTest {
 
     @Test
     void pagarPedidoAprovadoMudaParaPago() {
-        Cliente cli = new Cliente("1", "Cli", "999", "Rua A", "cli@ex.com");
+        Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
         Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.APROVADO, 0, 0, 0, 0);
 
         when(pedidosRepository.findByCodigo(1L)).thenReturn(Optional.of(ped));

@@ -104,12 +104,12 @@ public class UsuarioController {
             usuarioService.desativar(id);
 
             Map<String, String> response = new HashMap<>();
-            response.put("mensagem", "Usuário desativado com sucesso");
+            response.put("mensagem", "Usuário deletado");
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("erro", "Erro ao desativar usuário");
+            error.put("erro", "Erro ao deletar o usuário");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
@@ -129,24 +129,20 @@ public class UsuarioController {
             Usuario usuario = authHelper.getUsuarioAutenticado(request);
             if (!usuario.isMaster()) {
                 Map<String, String> error = new HashMap<>();
-                error.put("erro", "Apenas usuários MASTER podem definir o desconto ativo");
+                error.put("erro", "Apenas usuários MASTER podem definir o desconto");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
             }
 
             descontoService.definirDescontoAtivo(codigo);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("mensagem", "Desconto ativo atualizado com sucesso");
+            response.put("mensagem", "Desconto atualizado");
             response.put("descontoAtivo", descontoService.getDescontoAtivoCodigo());
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("erro", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("erro", "Erro ao definir desconto ativo");
+            error.put("erro", "Erro ao definir desconto");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }

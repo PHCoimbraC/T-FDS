@@ -28,17 +28,14 @@ public class ConsultaPedidoController {
         this.pedidosRepository = pedidosRepository;
     }
 
-    /**
-     * UC3 - Solicitar status de pedido (REQUER AUTENTICAÇÃO)
-     */
+
     @GetMapping("/{id}")
     public ResponseEntity<PedidoResponseDto> consultarPedido(@PathVariable long id,
                                                               HttpServletRequest request) {
         try {
-            // Verificar autenticação
+            // autenticação
             Usuario usuario = authHelper.getUsuarioAutenticado(request);
             
-            // Buscar o pedido
             Optional<Pedido> pedidoOpt = pedidosRepository.findByCodigo(id);
             
             if (pedidoOpt.isEmpty()) {
@@ -47,7 +44,7 @@ public class ConsultaPedidoController {
             
             Pedido pedido = pedidoOpt.get();
             
-            // Verificar se o pedido pertence ao usuário autenticado (ou se é master)
+            // ver se é master
             if (!pedido.getCliente().getEmail().equals(usuario.getEmail()) 
                 && !usuario.isMaster()) {
                 return ResponseEntity.status(403).build(); // Forbidden

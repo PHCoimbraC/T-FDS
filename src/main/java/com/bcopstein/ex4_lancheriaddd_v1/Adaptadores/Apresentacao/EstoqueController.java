@@ -34,16 +34,13 @@ public class EstoqueController {
         this.authHelper = authHelper;
     }
 
-    /**
-     * Listar todo o estoque (MASTER apenas)
-     */
     @GetMapping
     public ResponseEntity<?> listarEstoque(HttpServletRequest request) {
         try {
             Usuario usuario = authHelper.getUsuarioAutenticado(request);
             
             if (!usuario.isMaster()) {
-                return ResponseEntity.status(403).body(Map.of("erro", "Apenas MASTER pode consultar estoque"));
+                return ResponseEntity.status(403).body(Map.of("erro", "Precisar ser master"));
             }
 
             List<ItemEstoque> estoque = estoqueService.listarEstoque();
@@ -65,9 +62,7 @@ public class EstoqueController {
         }
     }
 
-    /**
-     * Repor estoque (MASTER apenas)
-     */
+
     @PostMapping("/{ingredienteId}/repor")
     public ResponseEntity<?> reporEstoque(@PathVariable Long ingredienteId,
                                           @RequestBody Map<String, Integer> body,
@@ -76,7 +71,7 @@ public class EstoqueController {
             Usuario usuario = authHelper.getUsuarioAutenticado(request);
             
             if (!usuario.isMaster()) {
-                return ResponseEntity.status(403).body(Map.of("ERRO", "Apenas MASTER pode repor estoque"));
+                return ResponseEntity.status(403).body(Map.of("ERRO", "Precisar ser master"));
             }
 
             Integer quantidade = body.get("quantidade");
@@ -87,16 +82,14 @@ public class EstoqueController {
             ItemEstoque item = estoqueService.reporEstoque(ingredienteId, quantidade);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("mensagem", "Estoque reposto com sucesso");
+            response.put("mensagem", "Estoque reposto");
             response.put("ingrediente", item.getIngrediente().getDescricao());
             response.put("quantidadeAdicionada", quantidade);
             response.put("quantidadeAtual", item.getQuantidade());
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("ERRO", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("ERRO", "ERRO ao repor estoque"));
+            return ResponseEntity.status(500).body(Map.of("ERRO", "erro ao repor estoque"));
         }
     }
 }

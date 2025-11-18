@@ -13,9 +13,6 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
 
 @Service
 public class DescontoService {
-    private static final String CHAVE_DESCONTO_ATIVO = "desconto_ativo_codigo";
-    private static final String COD_CLIENTE_FREQUENTE = "ClienteFrequente";
-    private static final String COD_CLIENTE_GASTADOR = "ClienteGastador";
 
     private final PedidosRepository pedidosRepository;
     private final ConfiguracaoRepository configuracaoRepository;
@@ -27,20 +24,18 @@ public class DescontoService {
     }
 
     public String getDescontoAtivoCodigo() {
-        // Valor padrão: ClienteFrequente
-        return configuracaoRepository.getValor(CHAVE_DESCONTO_ATIVO)
-                .orElse(COD_CLIENTE_FREQUENTE);
+        // default ClienteFrequente
+        return configuracaoRepository.getValor("desconto_ativo")
+                .orElse("ClienteFrequente");
     }
 
     public void definirDescontoAtivo(String codigo) {
-        if (!COD_CLIENTE_FREQUENTE.equals(codigo) &&
-            !COD_CLIENTE_GASTADOR.equals(codigo)) {
-            throw new IllegalArgumentException(
-                "Tipo de desconto inválido: " + codigo +
-                ". Use 'ClienteFrequente' ou 'ClienteGastador'."
+        if (!"ClienteFrequente".equals(codigo) &&
+            !"Cliente500".equals(codigo)) {
+            throw new IllegalArgumentException("Tipo de desconto inválido: Use 'ClienteFrequente' ou 'Cliente500'."
             );
         }
-        configuracaoRepository.setValor(CHAVE_DESCONTO_ATIVO, codigo);
+        configuracaoRepository.setValor("desconto_ativo", codigo);
         System.out.println("Desconto ativo alterado para: " + codigo);
     }
 
@@ -55,14 +50,14 @@ public class DescontoService {
 
         String codigoAtivo = getDescontoAtivoCodigo();
 
-        if (COD_CLIENTE_FREQUENTE.equals(codigoAtivo)) {
+        if ("ClienteFrequente".equals(codigoAtivo)) {
             if (isClienteFrequente(cliente)) {
-                // 7% de desconto nos itens
+                // 7% de desconto
                 return subtotal * 0.07;
             }
-        } else if (COD_CLIENTE_GASTADOR.equals(codigoAtivo)) {
-            if (isClienteGastador(cliente)) {
-                // 15% de desconto no valor a pagar
+        } else if ("Cliente500".equals(codigoAtivo)) {
+            if (isCliente500(cliente)) {
+                // 15% de desconto
                 return subtotal * 0.15;
             }
         }
@@ -80,7 +75,7 @@ public class DescontoService {
         return pedidos.size() > 3;
     }
 
-    public boolean isClienteGastador(Cliente cliente) {
+    public boolean isCliente500(Cliente cliente) {
         LocalDateTime fim = LocalDateTime.now();
         LocalDateTime inicio = fim.minusDays(30);
 
