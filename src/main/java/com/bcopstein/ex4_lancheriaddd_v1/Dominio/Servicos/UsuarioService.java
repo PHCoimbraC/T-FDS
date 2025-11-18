@@ -3,6 +3,8 @@ package com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.UsuarioRepository;
@@ -11,18 +13,20 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Usuario;
 @Service
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UsuarioService(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    public Usuario registrarCliente(String nome, String cpf, String celular, 
-                                     String endereco, String email, String senha) {
+    public Usuario registrarCliente(String nome, String cpf, String celular,
+                                    String endereco, String email, String senha) {
         // Validações
         if (usuarioRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email já cadastrado");
         }
-        
+
         if (cpf != null && !cpf.isEmpty() && usuarioRepository.existsByCpf(cpf)) {
             throw new IllegalArgumentException("CPF já cadastrado");
         }
@@ -30,16 +34,16 @@ public class UsuarioService {
         String senhaCriptografada = criptografarSenha(senha);
 
         Usuario novoUsuario = new Usuario(
-            null,
-            nome,
-            cpf,
-            celular,
-            endereco,
-            email,
-            senhaCriptografada,
-            Usuario.TipoUsuario.CLIENTE,
-            LocalDateTime.now(),
-            true
+                null,
+                nome,
+                cpf,
+                celular,
+                endereco,
+                email,
+                senhaCriptografada,
+                Usuario.TipoUsuario.CLIENTE,
+                LocalDateTime.now(),
+                true
         );
 
         return usuarioRepository.salvar(novoUsuario);
@@ -47,19 +51,19 @@ public class UsuarioService {
 
     public Optional<Usuario> autenticar(String email, String senha) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-        
+
         if (usuarioOpt.isEmpty()) {
             return Optional.empty();
         }
 
         Usuario usuario = usuarioOpt.get();
-        
+
         if (!usuario.isAtivo()) {
             throw new IllegalStateException("Usuário inativo");
         }
 
-        String senhaCriptografada = criptografarSenha(senha);
-        if (usuario.getSenha().equals(senhaCriptografada)) {
+        // Usa matches() para comparar senha em texto plano com hash
+        if (passwordEncoder.matches(senha, usuario.getSenha())) {
             return Optional.of(usuario);
         }
 
@@ -80,15 +84,15 @@ public class UsuarioService {
 
     public void alterarSenha(Long usuarioId, String senhaAntiga, String senhaNova) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
-        
+
         if (usuarioOpt.isEmpty()) {
             throw new IllegalArgumentException("Usuário não encontrado");
         }
 
         Usuario usuario = usuarioOpt.get();
-        String senhaAntigaCriptografada = criptografarSenha(senhaAntiga);
-        
-        if (!usuario.getSenha().equals(senhaAntigaCriptografada)) {
+
+        // Usa matches() para verificar senha antiga
+        if (!passwordEncoder.matches(senhaAntiga, usuario.getSenha())) {
             throw new IllegalArgumentException("Senha antiga incorreta");
         }
 
@@ -98,7 +102,7 @@ public class UsuarioService {
 
     public void desativar(Long usuarioId) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
-        
+
         if (usuarioOpt.isEmpty()) {
             throw new IllegalArgumentException("Usuário não encontrado");
         }
@@ -109,28 +113,25 @@ public class UsuarioService {
     }
 
     public void criarUsuarioMasterSeNaoExistir() {
-        String emailMaster = "master@pizzaria.com";
-        
-        if (!usuarioRepository.existsByEmail(emailMaster)) {
+        if (!usuarioRepository.existsByEmail("master@pizzaria.com")) {
             Usuario master = new Usuario(
-                null,
-                "Administrador",
-                null,
-                null,
-                null,
-                emailMaster,
-                criptografarSenha("master123"),
-                Usuario.TipoUsuario.MASTER,
-                LocalDateTime.now(),
-                true
+                    null,
+                    "Administrador",
+                    null,
+                    null,
+                    null,
+                    "master@pizzaria.com",
+                    criptografarSenha("master123"),
+                    Usuario.TipoUsuario.MASTER,
+                    LocalDateTime.now(),
+                    true
             );
             usuarioRepository.salvar(master);
-            System.out.println("Usuário master criado: " + emailMaster);
+            System.out.println("Usuário master criado: master@pizzaria.com");
         }
     }
 
-
     private String criptografarSenha(String senha) {
-        return senha;
+        return passwordEncoder.encode(senha);
     }
 }

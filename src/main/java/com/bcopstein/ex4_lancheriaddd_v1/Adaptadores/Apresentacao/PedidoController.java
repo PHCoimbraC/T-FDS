@@ -1,5 +1,6 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Apresentacao;
 
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.PedidoResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,18 +40,26 @@ public class PedidoController {
     }
 
     @PostMapping("/fazerPedido")
-    public ResponseEntity<Pedido> fazerPedido(@RequestBody PedidoRequestDto pedidoDTO,
-                                              HttpServletRequest request) {
+    public ResponseEntity<PedidoResponseDto> fazerPedido(@RequestBody PedidoRequestDto pedidoDTO,
+                                                         HttpServletRequest request) {
         Usuario usuario = authHelper.getUsuarioAutenticado(request);
 
         // Sempre usar o email do usuário autenticado
         pedidoDTO.setEmailCliente(usuario.getEmail());
 
-        Pedido aprovadoOuNegado = pedidoUC.run(pedidoDTO);
-        if (aprovadoOuNegado.getStatus() == Pedido.Status.APROVADO) {
-            return ResponseEntity.ok(aprovadoOuNegado);
+        Pedido pedido = pedidoUC.run(pedidoDTO);
+
+        PedidoResponseDto responseDto = new PedidoResponseDto(
+                pedido.getId(),
+                pedido.getCliente().getEmail(),
+                pedido.getStatus().toString(),
+                pedido.getValorCobrado()
+        );
+
+        if (pedido.getStatus() == Pedido.Status.APROVADO) {
+            return ResponseEntity.ok(responseDto);
         }
-        return ResponseEntity.badRequest().body(aprovadoOuNegado);
+        return ResponseEntity.badRequest().body(responseDto);
     }
 
     @DeleteMapping("/{id}/cancelar")
