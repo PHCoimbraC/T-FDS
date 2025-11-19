@@ -29,7 +29,8 @@ public class VerStatus {
             pedido.getCliente().getEmail(),
             pedido.getStatus().toString(),
             pedido.getValorCobrado(),
-    "Pedido encontrado"
+    "Pedido encontrado",
+                null
         );
     }
 }

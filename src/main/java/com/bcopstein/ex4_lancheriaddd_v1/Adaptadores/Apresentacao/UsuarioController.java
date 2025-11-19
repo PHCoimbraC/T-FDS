@@ -140,6 +140,10 @@ public class UsuarioController {
             response.put("descontoAtivo", descontoService.getDescontoAtivoCodigo());
 
             return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("erro", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("erro", "Erro ao definir desconto");

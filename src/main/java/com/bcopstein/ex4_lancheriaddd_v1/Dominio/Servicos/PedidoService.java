@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.FaltaEstoqueDto;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.PedidoResponseDto;
 import org.springframework.stereotype.Service;
 
@@ -48,18 +49,26 @@ public class PedidoService {
         Produto p = produtosRepository.recuperaProdutoPorid(i.getProdutoId());
         if (p == null) {
             System.out.println("Produto não encontrado: " + i.getProdutoId());
-            return new Pedido(0, cliente, null, List.of(), Pedido.Status.NEGADO, 0, 0, 0, 0);
+            return new Pedido(0, cliente, null, List.of(), Pedido.Status.NEGADO, 0, 0, 0, 0, null);
         }
         itens.add(new ItemPedido(p, i.getQuantidade()));
     }
 
     // Verifica disponibilidade no estoque
-    boolean estoqueOk = estoqueService.verificarDisponibilidade(itens);
-    if (!estoqueOk) {
-        return new Pedido(0, cliente, null, itens, Pedido.Status.NEGADO, 0, 0, 0, 0);
-    }
+        List<FaltaEstoqueDto> faltas = estoqueService.verificarDisponibilidade(itens);
+        if (!faltas.isEmpty()) {
+            Pedido pedidoNegado = new Pedido(
+                    0, cliente, null, itens,
+                    Pedido.Status.NEGADO,
+                    100, 0, 0, 0, null
+            );
+            // coloque a lista de faltas dentro do pedido
+            pedidoNegado.setFaltas(faltas);
+            return pedidoNegado;
+        }
 
-    // Dar salvar estoque
+
+        // Dar salvar estoque
     estoqueService.SalvarEstoque(itens);
 
     double subtotal = itens.stream().mapToDouble(ip -> ip.getItem().getPreco() * ip.getQuantidade()).sum();
@@ -68,7 +77,7 @@ public class PedidoService {
     double total = subtotal - desconto + impostos;
 
     x = x + 1;
-    Pedido pedido = new Pedido(x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total);
+    Pedido pedido = new Pedido(x, cliente, null, itens, Pedido.Status.APROVADO, subtotal, impostos, desconto, total, null);
 
     pedidosRepository.salvar(pedido, LocalDateTime.now());
 

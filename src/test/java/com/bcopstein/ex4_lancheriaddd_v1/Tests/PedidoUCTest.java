@@ -38,7 +38,7 @@ public class PedidoUCTest {
                 null,
                 List.of(),
                 Pedido.Status.APROVADO,
-                0, 0, 0, 0
+                0, 0, 0, 0, null
         );
 
         when(pedidoService.submeterPedido(any(Cliente.class), eq(dto.getItens())))

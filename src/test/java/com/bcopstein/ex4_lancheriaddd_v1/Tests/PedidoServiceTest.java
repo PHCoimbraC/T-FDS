@@ -2,6 +2,7 @@ package com.bcopstein.ex4_lancheriaddd_v1.Tests;
 
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.PedidosRepository;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dados.ProdutosRepository;
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.FaltaEstoqueDto;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.ItemPedidoDto;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Cliente;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Entidades.Pedido;
@@ -64,7 +65,7 @@ public class PedidoServiceTest {
         Produto p = new Produto(1L, "Pizza", r, 5000); // 50,00
 
         when(produtosRepository.recuperaProdutoPorid(1L)).thenReturn(p);
-        when(estoqueService.verificarDisponibilidade(any())).thenReturn(true);
+        when(estoqueService.verificarDisponibilidade(any())).thenReturn(List.of());
 
         Pedido pedido = pedidoService.submeterPedido(cli, List.of(itemDto));
 
@@ -106,11 +107,12 @@ public class PedidoServiceTest {
         Produto p = new Produto(1L, "Pizza", r, 5000);
 
         when(produtosRepository.recuperaProdutoPorid(1L)).thenReturn(p);
-        when(estoqueService.verificarDisponibilidade(any())).thenReturn(false);
+        when(estoqueService.verificarDisponibilidade(any()))
+                .thenReturn(List.of(new FaltaEstoqueDto("Falta", 1L)));
 
         Pedido pedido = pedidoService.submeterPedido(cli, List.of(itemDto));
 
-        assertEquals(Pedido.Status.NOVO, pedido.getStatus());
+        assertEquals(Pedido.Status.NEGADO, pedido.getStatus());
         assertFalse(pedido.getItens().isEmpty());
         verify(pedidosRepository, never()).salvar(any(), any());
     }
@@ -124,7 +126,7 @@ public class PedidoServiceTest {
     @Test
     void cancelarPedidoNaoAprovadoSemMudarStatus() {
         Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
-        Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.PAGO, 0, 0, 0, 0);
+        Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.PAGO, 0, 0, 0, 0, null);
 
         when(pedidosRepository.findByCodigo(1L)).thenReturn(Optional.of(ped));
 
@@ -137,7 +139,7 @@ public class PedidoServiceTest {
     @Test
     void cancelarPedidoAprovado() {
         Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
-        Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.APROVADO, 0, 0, 0, 0);
+        Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.APROVADO, 0, 0, 0, 0, null);
 
         when(pedidosRepository.findByCodigo(1L)).thenReturn(Optional.of(ped));
 
@@ -157,7 +159,7 @@ public class PedidoServiceTest {
     @Test
     void pagarPedidoNaoAprovadoNaoMudaStatus() {
         Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
-        Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.NOVO, 0, 0, 0, 0);
+        Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.NOVO, 0, 0, 0, 0, null);
 
         when(pedidosRepository.findByCodigo(1L)).thenReturn(Optional.of(ped));
 
@@ -170,7 +172,7 @@ public class PedidoServiceTest {
     @Test
     void pagarPedidoAprovadoMudaParaPago() {
         Cliente cli = new Cliente("1", "C", "9", "R", "cli@ex.com");
-        Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.APROVADO, 0, 0, 0, 0);
+        Pedido ped = new Pedido(1L, cli, null, List.of(), Pedido.Status.APROVADO, 0, 0, 0, 0, null);
 
         when(pedidosRepository.findByCodigo(1L)).thenReturn(Optional.of(ped));
 

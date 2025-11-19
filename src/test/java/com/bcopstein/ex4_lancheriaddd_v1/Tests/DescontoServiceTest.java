@@ -43,7 +43,8 @@ public class DescontoServiceTest {
                 valorCobrado,
                 0.0,
                 0.0,
-                valorCobrado
+                valorCobrado,
+                null
         );
     }
 

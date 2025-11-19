@@ -1,8 +1,10 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.FaltaEstoqueDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +28,8 @@ public class EstoqueService {
 
 
     @Transactional(readOnly = true)
-    public boolean verificarDisponibilidade(List<ItemPedido> itens) {
-        boolean tudoOk = true;
+    public List<FaltaEstoqueDto> verificarDisponibilidade(List<ItemPedido> itens) {
+        List<FaltaEstoqueDto> faltas = new ArrayList<>();
 
         for (ItemPedido itemPedido : itens) {
             Receita receita = itemPedido.getItem().getReceita();
@@ -36,33 +38,26 @@ public class EstoqueService {
                 Optional<ItemEstoque> itemEstoqueOpt = estoqueRepository.findByIngredienteId(ingrediente.getId());
 
                 if (itemEstoqueOpt.isEmpty()) {
-                    System.out.println("Ingrediente não encontrado " + ingrediente.getDescricao());
+                    faltas.add(new FaltaEstoqueDto(ingrediente.getDescricao(), ingrediente.getId()));
                     produtosRepository.marqueProdutoIndisponivel(ingrediente.getId());
-                    tudoOk = false;
                     continue;
                 }
 
                 ItemEstoque itemEstoque = itemEstoqueOpt.get();
                 int quantidadeNecessaria = itemPedido.getQuantidade();
 
-                if (itemEstoque.getQuantidade() < quantidadeNecessaria) {
-                    System.out.println("Estoque insuficiente de " + ingrediente.getDescricao() +
-                            ". Disponível: " + itemEstoque.getQuantidade() +
-                            ", Necessário: " + quantidadeNecessaria);
-                    produtosRepository.marqueProdutoIndisponivel(ingrediente.getId());
-                    tudoOk = false;
+                if (itemEstoque.getQuantidade() <= quantidadeNecessaria) {
+                    if (!faltas.contains(new FaltaEstoqueDto(itemPedido.getItem().getDescricao(), itemPedido.getItem().getId()))) {
+                        faltas.add(new FaltaEstoqueDto(itemPedido.getItem().getDescricao(), itemPedido.getItem().getId()));
+                        produtosRepository.marqueProdutoIndisponivel(ingrediente.getId());
+                    }
                 }
             }
         }
 
-        if (tudoOk) {
-            System.out.println("Estoque disponível");
-        } else {
-            System.out.println("Falta de estoque");
-        }
-
-        return tudoOk;
+        return faltas;
     }
+
 
     @Transactional
     public void SalvarEstoque(List<ItemPedido> itens) {

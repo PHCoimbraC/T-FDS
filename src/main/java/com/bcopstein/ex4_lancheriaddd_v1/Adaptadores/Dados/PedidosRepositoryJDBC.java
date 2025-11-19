@@ -123,7 +123,7 @@ public class PedidosRepositoryJDBC implements PedidosRepository {
             id, cli, dataPag,
             new java.util.ArrayList<>(),
             Pedido.Status.valueOf(status),
-            valor, impostos, desconto, total
+            valor, impostos, desconto, total, null
         );
     }
 

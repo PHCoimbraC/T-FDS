@@ -44,7 +44,7 @@ public class SessionAuthInterceptor implements HandlerInterceptor {
     }
 
     private boolean isPublicUrl(String path) {
-        return path.equals("/") ||
+            return path.equals("/") ||
                path.startsWith("/cardapio") ||
                 path.startsWith("/error") ||
                path.startsWith("/usuarios/registro") ||

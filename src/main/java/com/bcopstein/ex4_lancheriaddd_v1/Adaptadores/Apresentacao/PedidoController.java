@@ -1,5 +1,6 @@
 package com.bcopstein.ex4_lancheriaddd_v1.Adaptadores.Apresentacao;
 
+import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.FaltaEstoqueDto;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Dto.PedidoResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,6 +20,8 @@ import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos.CozinhaService;
 import com.bcopstein.ex4_lancheriaddd_v1.Dominio.Servicos.PedidoService;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/pedidos")
@@ -55,11 +58,25 @@ public class PedidoController {
                 pedido.getCliente().getEmail(),
                 pedido.getStatus().toString(),
                 pedido.getValorCobrado(),
-                "Pedido criado com sucesso"
+                "Pedido criado com sucesso",
+                null
         );
 
         if (pedido.getStatus() == Pedido.Status.APROVADO) {
             return ResponseEntity.ok(responseDto);
+        }
+        List<FaltaEstoqueDto> faltas = pedido.getFaltas();
+        if (pedido.getStatus() == Pedido.Status.NEGADO && pedido.getValor() == 100) {
+            return ResponseEntity.badRequest().body(
+                    new PedidoResponseDto(
+                            pedido.getId(),
+                            pedido.getCliente().getEmail(),
+                            pedido.getStatus().toString(),
+                            0,
+                            "Pedido negado por falta de estoque",
+                            pedido.getFaltas()
+                    )
+            );
         }
 
         responseDto = new PedidoResponseDto(
@@ -67,7 +84,8 @@ public class PedidoController {
                 pedido.getCliente().getEmail(),
                 pedido.getStatus().toString(),
                 0,
-                "Pedido Negado"
+                "Pedido Negado",
+                null
         );
         return ResponseEntity.badRequest().body(responseDto);
     }
